@@ -24,9 +24,11 @@ import com.drop_db.saferide.util.NominatimApi
 import com.drop_db.saferide.util.OsrmApi
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
@@ -47,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private var destinationMarker: Marker? = null
     private var userMarker: Marker? = null
     private var userLocation: GeoPoint? = null
+    private var selectedPickupPoint: GeoPoint? = null
     private var selectedDestinationName: String = ""
 
     // ── Tariff ────────────────────────────────────────────────────────────────
@@ -89,9 +92,16 @@ class MainActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             val data = result.data ?: return@registerForActivityResult
+            val pickupLat = data.getDoubleExtra(SearchActivity.EXTRA_PICKUP_LAT, Double.NaN)
+            val pickupLon = data.getDoubleExtra(SearchActivity.EXTRA_PICKUP_LON, Double.NaN)
+            val pickupAddress = data.getStringExtra(SearchActivity.EXTRA_PICKUP_ADDRESS).orEmpty()
             val lat  = data.getDoubleExtra(SearchActivity.EXTRA_LAT, 0.0)
             val lon  = data.getDoubleExtra(SearchActivity.EXTRA_LON, 0.0)
             val name = data.getStringExtra(SearchActivity.EXTRA_NAME) ?: ""
+            if (!pickupLat.isNaN() && !pickupLon.isNaN()) {
+                selectedPickupPoint = GeoPoint(pickupLat, pickupLon)
+            }
+            if (pickupAddress.isNotBlank()) updatePickupPoint(pickupAddress)
             drawRouteTo(GeoPoint(lat, lon), name)
         }
     }
@@ -110,6 +120,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        resetToHomeState()
         setupMap()
         setupTariffPanel()
         setupSearchingPanel()
@@ -121,6 +132,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.mapView.onResume()
+        if (routeOverlay == null && destinationMarker == null && binding.loadingOverlay.visibility != View.VISIBLE) {
+            resetToHomeState()
+        }
         if (carStates.isNotEmpty()) startCarAnimation()
     }
 
@@ -147,6 +161,11 @@ class MainActivity : AppCompatActivity() {
                 userLocation?.let {
                     putExtra(SearchActivity.EXTRA_USER_LAT, it.latitude)
                     putExtra(SearchActivity.EXTRA_USER_LON, it.longitude)
+                }
+                val pickup = selectedPickupPoint ?: userLocation
+                pickup?.let {
+                    putExtra(SearchActivity.EXTRA_PICKUP_LAT, it.latitude)
+                    putExtra(SearchActivity.EXTRA_PICKUP_LON, it.longitude)
                 }
                 putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
             })
@@ -200,7 +219,6 @@ class MainActivity : AppCompatActivity() {
         binding.btnCloseTariff.setOnClickListener {
             binding.cardTariff.slideDown()
             binding.cardRoutePreview.slideDown()
-            binding.cardPromo.slideDown()
             clearRoute()
             setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
@@ -229,7 +247,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.cardWhereTo.slideDown()
         binding.cardRoutePreview.slideUp()
-        binding.cardPromo.slideUp()
         binding.cardTariff.slideUp()
     }
 
@@ -247,7 +264,6 @@ class MainActivity : AppCompatActivity() {
             binding.cardSearching.slideDown()
             clearRoute()
             binding.cardRoutePreview.slideDown()
-            binding.cardPromo.slideDown()
             setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
         }
@@ -311,7 +327,6 @@ class MainActivity : AppCompatActivity() {
             binding.panelDriverList.slideDown()
             clearRoute()
             binding.cardRoutePreview.slideDown()
-            binding.cardPromo.slideDown()
             setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
         }
@@ -321,6 +336,25 @@ class MainActivity : AppCompatActivity() {
         val visibility = if (visible) View.VISIBLE else View.GONE
         binding.btnMenu.visibility = visibility
         binding.cardPickupPoint.visibility = visibility
+    }
+
+    private fun resetToHomeState() {
+        hideImmediately(binding.loadingOverlay)
+        hideImmediately(binding.cardRoutePreview)
+        hideImmediately(binding.cardTariff)
+        hideImmediately(binding.cardSearching)
+        hideImmediately(binding.panelDriverList)
+        binding.cardWhereTo.visibility = View.VISIBLE
+        binding.cardWhereTo.translationY = 0f
+        binding.fabMyLocation.visibility = View.VISIBLE
+        setHomeChromeVisible(true)
+    }
+
+    private fun hideImmediately(view: View) {
+        view.animate().cancel()
+        view.clearAnimation()
+        view.translationY = 0f
+        view.visibility = View.GONE
     }
 
     private fun showDriverList(drivers: List<MockDriver>, center: GeoPoint) {
@@ -390,6 +424,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onLocationReady(location: GeoPoint) {
         userLocation = location
+        if (selectedPickupPoint == null) selectedPickupPoint = location
         binding.mapView.controller.animateTo(location)
         binding.mapView.controller.setZoom(18.5)
         placeUserMarker(location)
@@ -488,9 +523,10 @@ class MainActivity : AppCompatActivity() {
     private var routeDistanceKmLast = 0.0
 
     private fun drawRouteTo(destination: GeoPoint, name: String) {
-        val origin = userLocation ?: return
+        val origin = selectedPickupPoint ?: userLocation ?: return
         selectedDestinationName = name
         clearRoute()
+        showRouteLoading(true)
 
         destinationMarker = Marker(binding.mapView).apply {
             position = destination
@@ -500,39 +536,71 @@ class MainActivity : AppCompatActivity() {
         }
         binding.mapView.overlays.add(destinationMarker)
         binding.mapView.invalidate()
-        binding.loadingOverlay.visibility = View.VISIBLE
 
         lifecycleScope.launch {
+            val nearestEta = MockData.driversAround(origin).minOf { it.eta }
+            val quickDistanceKm = (origin.distanceToAsDouble(destination) / 1000.0).coerceAtLeast(0.3)
+            val routeDeferred = async { OsrmApi.getRoute(origin, destination) }
+
             try {
-                val osrmPoints = OsrmApi.getRoute(origin, destination)
-                val routePoints = if (osrmPoints.isNotEmpty()) osrmPoints else listOf(origin, destination)
-
-                routeOverlay = Polyline(binding.mapView).apply {
-                    setPoints(routePoints)
-                    outlinePaint.color = ContextCompat.getColor(this@MainActivity, R.color.route_color)
-                    outlinePaint.strokeWidth = 13f
-                    outlinePaint.alpha = if (osrmPoints.isNotEmpty()) 200 else 150
+                val initialRoute = withTimeoutOrNull(2000) { routeDeferred.await() }
+                if (!initialRoute.isNullOrEmpty()) {
+                    renderRoute(origin, destination, initialRoute, true)
+                    routeDistanceKmLast = routeDistanceKm(initialRoute).coerceAtLeast(0.3)
+                } else {
+                    routeDistanceKmLast = quickDistanceKm
+                    lifecycleScope.launch {
+                        val finalRoute = routeDeferred.await()
+                        if (finalRoute.isNotEmpty()) {
+                            renderRoute(origin, destination, finalRoute, true)
+                        } else {
+                            renderRoute(origin, destination, listOf(origin, destination), false)
+                            Snackbar.make(
+                                binding.root,
+                                "Couldn't load road route. Showing direct path instead.",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    }
                 }
-                binding.mapView.overlays.add(0, routeOverlay)
-                binding.mapView.invalidate()
-
-                val box = BoundingBox.fromGeoPoints(listOf(origin, destination))
-                binding.mapView.post { binding.mapView.zoomToBoundingBox(box, true, 160) }
-
-                routeDistanceKmLast = routeDistanceKm(routePoints).coerceAtLeast(0.3)
-                val nearestEta = MockData.driversAround(origin).minOf { it.eta }
                 showTariffPanel(routeDistanceKmLast, nearestEta)
-
-                if (osrmPoints.isEmpty()) {
-                    Snackbar.make(
-                        binding.root,
-                        "Couldn't load road route. Showing direct path instead.",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
             } finally {
-                binding.loadingOverlay.visibility = View.GONE
+                showRouteLoading(false)
             }
+        }
+    }
+
+    private fun renderRoute(
+        origin: GeoPoint,
+        destination: GeoPoint,
+        points: List<GeoPoint>,
+        roadRoute: Boolean
+    ) {
+        routeOverlay?.let { binding.mapView.overlays.remove(it) }
+        routeOverlay = Polyline(binding.mapView).apply {
+            setPoints(points)
+            outlinePaint.color = ContextCompat.getColor(this@MainActivity, R.color.route_color)
+            outlinePaint.strokeWidth = 13f
+            outlinePaint.alpha = if (roadRoute) 210 else 150
+        }
+        binding.mapView.overlays.add(0, routeOverlay)
+        binding.mapView.invalidate()
+
+        val box = BoundingBox.fromGeoPoints(listOf(origin, destination))
+        binding.mapView.post { binding.mapView.zoomToBoundingBox(box, true, 160) }
+    }
+
+    private fun showRouteLoading(loading: Boolean) {
+        binding.loadingOverlay.visibility = if (loading) View.VISIBLE else View.GONE
+        if (loading) {
+            binding.cardWhereTo.visibility = View.GONE
+            binding.cardPickupPoint.visibility = View.GONE
+            binding.btnMenu.visibility = View.GONE
+            binding.fabMyLocation.visibility = View.GONE
+            binding.cardRoutePreview.visibility = View.GONE
+            binding.cardTariff.visibility = View.GONE
+        } else {
+            binding.fabMyLocation.visibility = View.VISIBLE
         }
     }
 

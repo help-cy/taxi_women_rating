@@ -95,37 +95,25 @@
         app:tint="@color/text_primary" />
 
     <!-- Route loading overlay -->
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/loadingOverlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@drawable/bg_loading_card"
-        android:elevation="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#1AFFFFFF"
         android:gravity="center"
-        android:orientation="vertical"
-        android:paddingHorizontal="32dp"
-        android:paddingVertical="24dp"
         android:visibility="gone">
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:indicatorColor="@color/brand_primary"
-            app:indicatorSize="44dp"
-            app:trackColor="@color/brand_primary_light"
-            app:trackThickness="4dp" />
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_marginBottom="196dp"
+            app:indicatorColor="#90D800"
+            app:indicatorSize="56dp"
+            app:trackColor="#DDE8B2"
+            app:trackThickness="5dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:text="Building route…"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-    </LinearLayout>
+    </FrameLayout>
 
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- PANEL 1: Where To                                          -->
@@ -481,43 +469,6 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <LinearLayout
-        android:id="@+id/cardPromo"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_gravity="top"
-        android:layout_marginHorizontal="36dp"
-        android:layout_marginTop="326dp"
-        android:background="@drawable/bg_promo_subtle"
-        android:elevation="14dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_ticket" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:text="Got promo code? Use it here"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_arrow_right"
-            app:tint="@color/text_primary" />
-
-    </LinearLayout>
-
     <androidx.cardview.widget.CardView
         android:id="@+id/cardTariff"
         android:layout_width="match_parent"
@@ -534,7 +485,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:paddingTop="14dp"
-            android:paddingBottom="18dp">
+            android:paddingBottom="34dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -647,6 +598,7 @@
                     android:layout_height="64dp"
                     android:layout_marginStart="14dp"
                     android:layout_marginEnd="14dp"
+                    android:layout_marginBottom="16dp"
                     android:layout_weight="1"
                     android:text="Find offers"
                     android:textColor="@color/text_primary"

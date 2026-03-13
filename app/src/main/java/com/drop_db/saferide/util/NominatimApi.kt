@@ -59,8 +59,8 @@ object NominatimApi {
         return try {
             val connection = URL(url).openConnection() as HttpsURLConnection
             connection.setRequestProperty("User-Agent", "SafeRideApp/1.0")
-            connection.connectTimeout = 6000
-            connection.readTimeout = 6000
+            connection.connectTimeout = 3500
+            connection.readTimeout = 3500
             val json = connection.inputStream.bufferedReader().readText()
             connection.disconnect()
             parseResults(json)
@@ -74,8 +74,8 @@ object NominatimApi {
         return try {
             val connection = URL(url).openConnection() as HttpsURLConnection
             connection.setRequestProperty("User-Agent", "SafeRideApp/1.0")
-            connection.connectTimeout = 6000
-            connection.readTimeout = 6000
+            connection.connectTimeout = 3500
+            connection.readTimeout = 3500
             val json = connection.inputStream.bufferedReader().readText()
             connection.disconnect()
             parseReverse(json)
