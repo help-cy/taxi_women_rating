@@ -183,6 +183,21 @@ class MainActivity : AppCompatActivity() {
                 putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
             })
         }
+        binding.rowRouteTo.setOnClickListener {
+            launchedSubActivity = true
+            searchLauncher.launch(Intent(this, SearchActivity::class.java).apply {
+                userLocation?.let {
+                    putExtra(SearchActivity.EXTRA_USER_LAT, it.latitude)
+                    putExtra(SearchActivity.EXTRA_USER_LON, it.longitude)
+                }
+                val pickup = selectedPickupPoint ?: userLocation
+                pickup?.let {
+                    putExtra(SearchActivity.EXTRA_PICKUP_LAT, it.latitude)
+                    putExtra(SearchActivity.EXTRA_PICKUP_LON, it.longitude)
+                }
+                putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
+            })
+        }
         binding.fabMyLocation.setOnClickListener {
             centerOnUserLocation()
         }

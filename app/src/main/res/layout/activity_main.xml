@@ -202,8 +202,7 @@
                             android:layout_marginTop="5dp"
                             android:text="Ride"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:textSize="11sp" />
 
                     </LinearLayout>
 
@@ -231,8 +230,7 @@
                             android:layout_marginTop="5dp"
                             android:text="Comfort"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:textSize="11sp" />
 
                     </LinearLayout>
 
@@ -260,8 +258,7 @@
                             android:layout_marginTop="5dp"
                             android:text="Couriers"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:textSize="11sp" />
 
                     </LinearLayout>
 
@@ -289,8 +286,7 @@
                             android:gravity="center"
                             android:text="City to city"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:textSize="11sp" />
 
                     </LinearLayout>
 
@@ -323,8 +319,7 @@
                     android:layout_weight="1"
                     android:text="Where to &amp; for how much?"
                     android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textSize="18sp" />
 
             </LinearLayout>
 
@@ -461,6 +456,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/rowRouteTo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -609,14 +605,14 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBook"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="60dp"
                     android:layout_marginStart="14dp"
                     android:layout_marginEnd="14dp"
                     android:layout_marginBottom="16dp"
                     android:layout_weight="1"
                     android:text="Find offers"
                     android:textAllCaps="false"
-                    android:textColor="@color/text_primary"
+                    android:textColor="#0B0F00"
                     android:textSize="18sp"
                     app:backgroundTint="#B7F006"
                     app:cornerRadius="18dp" />
