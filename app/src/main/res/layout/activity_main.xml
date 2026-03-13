@@ -618,7 +618,6 @@
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
-                    android:textStyle="bold"
                     app:backgroundTint="#B7F006"
                     app:cornerRadius="18dp" />
 
@@ -745,7 +744,6 @@
                 android:text="Raise fare"
                 android:textColor="@color/text_primary"
                 android:textSize="17sp"
-                android:textStyle="bold"
                 app:backgroundTint="@color/bg_input"
                 app:cornerRadius="18dp" />
 
@@ -1272,7 +1270,6 @@
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp"
-                    android:textStyle="bold"
                     app:backgroundTint="#B7F006"
                     app:cornerRadius="18dp" />
 
@@ -1486,7 +1483,6 @@
                     android:textAllCaps="false"
                     android:textColor="#0B0F00"
                     android:textSize="18sp"
-                    android:textStyle="bold"
                     app:backgroundTint="#B7F006"
                     app:cornerRadius="18dp" />
 

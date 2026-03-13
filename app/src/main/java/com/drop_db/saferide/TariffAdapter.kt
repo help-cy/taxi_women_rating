@@ -47,11 +47,11 @@ class TariffAdapter(
             tvName.text = labelFor(tariff)
             tvMeta.text = "${seatsFor(tariff)} • ${tariff.etaMin} min"
             tvTagline.text = taglineFor(tariff)
-            tvPrice.text = if (selected) "" else "~€%.0f".format(tariff.price)
+            tvPrice.text = if (selected) "" else "~€%.0f".format(tariff.recommendedPrice)
             ivSelectedAction.visibility = if (selected) View.VISIBLE else View.GONE
             priceAdjustRow.visibility = if (selected) View.VISIBLE else View.GONE
             tvAdjustPrice.text = "€%.0f".format(tariff.price)
-            tvRecommendedFare.text = "Recommended fare: €%.0f".format(tariff.price)
+            tvRecommendedFare.text = "Recommended fare: €%.0f".format(tariff.recommendedPrice)
             tariffContainer.background = ContextCompat.getDrawable(
                 context,
                 if (selected) R.drawable.bg_tariff_row_selected else R.drawable.bg_tariff_row_default

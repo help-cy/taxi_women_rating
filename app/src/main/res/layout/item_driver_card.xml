@@ -214,7 +214,6 @@
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="13sp"
-            android:textStyle="bold"
             app:backgroundTint="#90D800"
             app:cornerRadius="12dp" />
 

@@ -7,6 +7,7 @@ data class Tariff(
     val tagline: String,
     val priceMultiplier: Float,
     val etaOffsetMin: Int,        // added to nearest driver ETA
+    var recommendedPrice: Double = 0.0, // base recommended fare after route is known
     var price: Double = 0.0,      // filled after route is known
     var etaMin: Int = 0           // filled after route is known
 )
