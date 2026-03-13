@@ -126,6 +126,14 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_pick_on_map" />
 
+            <ImageView
+                android:id="@+id/btnClearFrom"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="6dp"
+                android:src="@drawable/ic_clear_search"
+                android:visibility="gone" />
+
         </LinearLayout>
 
         <LinearLayout

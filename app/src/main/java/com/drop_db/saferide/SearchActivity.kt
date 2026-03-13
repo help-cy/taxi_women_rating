@@ -76,9 +76,8 @@ class SearchActivity : AppCompatActivity() {
         binding.btnFromMap.setOnClickListener { restoreCurrentPickup() }
         binding.fieldFrom.setOnClickListener { setActiveField(ActiveField.FROM) }
         binding.fieldTo.setOnClickListener { setActiveField(ActiveField.TO) }
-        binding.btnClearSearch.setOnClickListener {
-            activeEditText().text?.clear()
-        }
+        binding.btnClearSearch.setOnClickListener { binding.etTo.text?.clear() }
+        binding.btnClearFrom.setOnClickListener { binding.etFrom.text?.clear() }
     }
 
     override fun onResume() {
@@ -158,7 +157,7 @@ class SearchActivity : AppCompatActivity() {
             if (ignoreTextCallbacks || activeField != field) return
 
             val query = s?.toString()?.trim().orEmpty()
-            binding.btnClearSearch.visibility = if (query.isBlank()) View.GONE else View.VISIBLE
+            updateClearButtons()
             searchJob?.cancel()
 
             if (query.length < 2) {
@@ -202,8 +201,7 @@ class SearchActivity : AppCompatActivity() {
         binding.fieldTo.setBackgroundResource(
             if (field == ActiveField.TO) R.drawable.bg_search_field_active else R.drawable.bg_search_field
         )
-        binding.btnClearSearch.visibility =
-            if (activeEditText().text.isNullOrBlank()) View.GONE else View.VISIBLE
+        updateClearButtons()
 
         activeEditText().requestFocus()
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
@@ -211,6 +209,12 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun activeEditText() = if (activeField == ActiveField.FROM) binding.etFrom else binding.etTo
+    private fun updateClearButtons() {
+        binding.btnClearFrom.visibility =
+            if (activeField == ActiveField.FROM && !binding.etFrom.text.isNullOrBlank()) View.VISIBLE else View.GONE
+        binding.btnClearSearch.visibility =
+            if (activeField == ActiveField.TO && !binding.etTo.text.isNullOrBlank()) View.VISIBLE else View.GONE
+    }
 
     private suspend fun performSearch(query: String) {
         showEmptyState(false)
