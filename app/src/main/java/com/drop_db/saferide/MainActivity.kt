@@ -659,7 +659,8 @@ class MainActivity : AppCompatActivity() {
             }
             binding.mapView.overlays.add(arrivalRouteOverlay)
             binding.mapView.post {
-                binding.mapView.zoomToBoundingBox(BoundingBox.fromGeoPoints(route), true, 140)
+                // Pull back a bit more while the driver is arriving.
+                binding.mapView.zoomToBoundingBox(BoundingBox.fromGeoPoints(route), true, 240)
             }
             binding.mapView.invalidate()
 

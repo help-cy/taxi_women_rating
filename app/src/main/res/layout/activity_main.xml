@@ -1310,7 +1310,7 @@
             android:layout_marginHorizontal="18dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#121212"
+            app:cardBackgroundColor="@color/bg_card"
             app:cardCornerRadius="28dp"
             app:cardElevation="22dp">
 
@@ -1327,11 +1327,11 @@
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:layout_gravity="end"
-                    android:background="@drawable/bg_circle_button"
+                    android:background="@drawable/bg_close_button_light"
                     android:contentDescription="Close"
                     android:scaleType="center"
-                    app:srcCompat="@drawable/ic_close"
-                    app:tint="@color/white" />
+                    app:srcCompat="@drawable/ic_close_thin"
+                    app:tint="@color/text_primary" />
 
                 <TextView
                     android:id="@+id/tvRateTitle"
@@ -1340,7 +1340,7 @@
                     android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="Great"
-                    android:textColor="@color/white"
+                    android:textColor="@color/text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -1350,7 +1350,7 @@
                     android:layout_marginTop="10dp"
                     android:gravity="center"
                     android:text="Help other women ride safer.\nHow did you feel during this trip?"
-                    android:textColor="#D5D5D5"
+                    android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
                 <!-- Stars -->
@@ -1393,11 +1393,12 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:checkable="true"
                         android:text="Felt safe"
-                        android:textColor="@color/white"
-                        app:chipBackgroundColor="#2A2A2A"
+                        android:textColor="@color/chip_rate_text"
+                        app:chipBackgroundColor="@color/chip_rate_bg"
                         app:chipCornerRadius="18dp"
-                        app:chipStrokeColor="#404040"
+                        app:chipStrokeColor="@color/chip_rate_stroke"
                         app:chipStrokeWidth="1dp"
                         app:checkedIconVisible="false" />
 
@@ -1406,11 +1407,12 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:checkable="true"
                         android:text="Respectful"
-                        android:textColor="@color/white"
-                        app:chipBackgroundColor="#2A2A2A"
+                        android:textColor="@color/chip_rate_text"
+                        app:chipBackgroundColor="@color/chip_rate_bg"
                         app:chipCornerRadius="18dp"
-                        app:chipStrokeColor="#404040"
+                        app:chipStrokeColor="@color/chip_rate_stroke"
                         app:chipStrokeWidth="1dp"
                         app:checkedIconVisible="false" />
 
@@ -1419,11 +1421,12 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:checkable="true"
                         android:text="Boundaries respected"
-                        android:textColor="@color/white"
-                        app:chipBackgroundColor="#2A2A2A"
+                        android:textColor="@color/chip_rate_text"
+                        app:chipBackgroundColor="@color/chip_rate_bg"
                         app:chipCornerRadius="18dp"
-                        app:chipStrokeColor="#404040"
+                        app:chipStrokeColor="@color/chip_rate_stroke"
                         app:chipStrokeWidth="1dp"
                         app:checkedIconVisible="false" />
 
@@ -1432,11 +1435,12 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:checkable="true"
                         android:text="No awkward talk"
-                        android:textColor="@color/white"
-                        app:chipBackgroundColor="#2A2A2A"
+                        android:textColor="@color/chip_rate_text"
+                        app:chipBackgroundColor="@color/chip_rate_bg"
                         app:chipCornerRadius="18dp"
-                        app:chipStrokeColor="#404040"
+                        app:chipStrokeColor="@color/chip_rate_stroke"
                         app:chipStrokeWidth="1dp"
                         app:checkedIconVisible="false" />
 
@@ -1445,11 +1449,12 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:checkable="true"
                         android:text="Clean &amp; tidy"
-                        android:textColor="@color/white"
-                        app:chipBackgroundColor="#2A2A2A"
+                        android:textColor="@color/chip_rate_text"
+                        app:chipBackgroundColor="@color/chip_rate_bg"
                         app:chipCornerRadius="18dp"
-                        app:chipStrokeColor="#404040"
+                        app:chipStrokeColor="@color/chip_rate_stroke"
                         app:chipStrokeWidth="1dp"
                         app:checkedIconVisible="false" />
 
@@ -1458,14 +1463,19 @@
                 <EditText
                     android:id="@+id/etRateComment"
                     android:layout_width="match_parent"
-                    android:layout_height="54dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_rate_comment"
+                    android:background="@drawable/bg_rate_comment_light"
                     android:hint="Comment (optional)"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:gravity="top|start"
+                    android:minLines="3"
+                    android:maxLines="5"
+                    android:paddingVertical="12dp"
                     android:paddingHorizontal="14dp"
-                    android:textColor="@color/white"
-                    android:textColorHint="#8F8F8F"
-                    android:singleLine="true" />
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint"
+                    android:scrollbars="vertical" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSubmitRate"

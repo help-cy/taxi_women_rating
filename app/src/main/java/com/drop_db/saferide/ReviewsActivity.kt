@@ -1,6 +1,8 @@
 package com.drop_db.saferide
 
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.drop_db.saferide.databinding.ActivityReviewsBinding
@@ -46,6 +48,15 @@ class ReviewsActivity : AppCompatActivity() {
             .take(2)
             .joinToString("")
         binding.tvDriverAvatar.background.setTint(0xFF90D800.toInt())
+        binding.tvDriverRatingLine.text = SpannableStringBuilder().apply {
+            val overall = "★ %.1f overall".format(overallRating)
+            val women = " ★ ♀ %.1f women".format(womenRating)
+            append(overall)
+            setSpan(ForegroundColorSpan(0xFFFFB300.toInt()), 0, 1, 0)
+            val startWomen = length
+            append(women)
+            setSpan(ForegroundColorSpan(0xFFE84393.toInt()), startWomen, length, 0)
+        }
         binding.btnBack.setOnClickListener { finish() }
 
         // Summary
