@@ -216,8 +216,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun offsetMapForBottomPanel(panel: View, panelOffsetFraction: Float = 0.35f) {
-        val location = userLocation ?: return
+    private fun offsetMapForBottomPanel(
+        panel: View,
+        panelOffsetFraction: Float = 0.35f,
+        center: GeoPoint? = null
+    ) {
+        val location = center ?: userLocation ?: return
         binding.mapView.post {
             val projection = binding.mapView.projection ?: return@post
             val baseOffset = if (panel.height > 0) panel.height else (binding.mapView.height * 0.25f).roundToInt()
@@ -227,6 +231,21 @@ class MainActivity : AppCompatActivity() {
             val newCenter = projection.fromPixels(point.x, point.y) as GeoPoint
             binding.mapView.controller.animateTo(newCenter)
         }
+    }
+
+    private fun routeCenterPoint(): GeoPoint? {
+        if (lastRoutePoints.isEmpty()) return selectedPickupPoint ?: userLocation
+        var minLat = Double.POSITIVE_INFINITY
+        var maxLat = Double.NEGATIVE_INFINITY
+        var minLon = Double.POSITIVE_INFINITY
+        var maxLon = Double.NEGATIVE_INFINITY
+        lastRoutePoints.forEach { p ->
+            if (p.latitude < minLat) minLat = p.latitude
+            if (p.latitude > maxLat) maxLat = p.latitude
+            if (p.longitude < minLon) minLon = p.longitude
+            if (p.longitude > maxLon) maxLon = p.longitude
+        }
+        return GeoPoint((minLat + maxLat) / 2.0, (minLon + maxLon) / 2.0)
     }
 
     // ── PANEL 2: Tariff ───────────────────────────────────────────────────────
@@ -274,7 +293,7 @@ class MainActivity : AppCompatActivity() {
         binding.cardWhereTo.slideDown()
         binding.cardRoutePreview.slideUp()
         binding.cardTariff.slideUp()
-        offsetMapForBottomPanel(binding.cardTariff)
+        offsetMapForBottomPanel(binding.cardTariff, panelOffsetFraction = 0.55f, center = routeCenterPoint())
     }
 
     private fun adjustTariffPrice(tariff: Tariff, delta: Double) {
