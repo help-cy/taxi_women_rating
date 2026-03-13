@@ -124,6 +124,7 @@ class MainActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         Configuration.getInstance().load(
             this, android.preference.PreferenceManager.getDefaultSharedPreferences(this)
         )
@@ -183,6 +184,9 @@ class MainActivity : AppCompatActivity() {
                 putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
             })
         }
+        binding.tvSuggested1.setOnClickListener { quickRouteTo(binding.tvSuggested1.text.toString()) }
+        binding.tvSuggested2.setOnClickListener { quickRouteTo(binding.tvSuggested2.text.toString()) }
+        binding.tvSuggested3.setOnClickListener { quickRouteTo(binding.tvSuggested3.text.toString()) }
         binding.rowRouteTo.setOnClickListener {
             launchedSubActivity = true
             searchLauncher.launch(Intent(this, SearchActivity::class.java).apply {
@@ -202,6 +206,19 @@ class MainActivity : AppCompatActivity() {
             centerOnUserLocation()
         }
         binding.btnCancelRequest.setOnClickListener { showCancelConfirm(true) }
+    }
+
+    private fun quickRouteTo(query: String) {
+        val loc = userLocation ?: return
+        lifecycleScope.launch {
+            val results = NominatimApi.search(query, loc.latitude, loc.longitude)
+            val first = results.firstOrNull()
+            if (first != null) {
+                drawRouteTo(first.geoPoint, first.shortName)
+            } else {
+                Snackbar.make(binding.root, "Couldn't find that place. Try search instead.", Snackbar.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun setupTransportSwitcher() {
@@ -263,6 +280,17 @@ class MainActivity : AppCompatActivity() {
             if (p.longitude > maxLon) maxLon = p.longitude
         }
         return GeoPoint((minLat + maxLat) / 2.0, (minLon + maxLon) / 2.0)
+    }
+
+    private fun driverPhotoRes(name: String): Int? = when {
+        name.startsWith("Anna K.") -> R.drawable.anna_k
+        name.startsWith("Sara T.") -> R.drawable.sara_t
+        name.startsWith("Alex V.") -> R.drawable.alex_v
+        name.startsWith("David S.") -> R.drawable.david_s
+        name.startsWith("Maria P.") -> R.drawable.maria_p
+        name.startsWith("John M.") -> R.drawable.john_m
+        name.startsWith("Olivia R.") -> R.drawable.olivia_r
+        else -> null
     }
 
     // ── PANEL 2: Tariff ───────────────────────────────────────────────────────
@@ -514,6 +542,10 @@ class MainActivity : AppCompatActivity() {
     private var rateStars = 5
 
     private fun setupRateOverlay() {
+        val content = binding.rateContent
+        val originalTop = content.paddingTop
+        val compactTop = (6 * resources.displayMetrics.density).toInt()
+
         fun applyStars() {
             val stars = listOf(binding.star1, binding.star2, binding.star3, binding.star4, binding.star5)
             stars.forEachIndexed { idx, tv -> tv.alpha = if (idx < rateStars) 1f else 0.25f }
@@ -536,6 +568,13 @@ class MainActivity : AppCompatActivity() {
         binding.btnSubmitRate.setOnClickListener {
             Snackbar.make(binding.root, "Thanks for your feedback!", Snackbar.LENGTH_LONG).show()
             finishRateOverlay()
+        }
+        binding.etRateComment.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                content.setPadding(content.paddingLeft, compactTop, content.paddingRight, content.paddingBottom)
+            } else {
+                content.setPadding(content.paddingLeft, originalTop, content.paddingRight, content.paddingBottom)
+            }
         }
     }
 
@@ -658,15 +697,27 @@ class MainActivity : AppCompatActivity() {
         binding.tvArrivingTitle.text = "Your driver will arrive in ~${driver.eta} min"
         binding.tvArrivingCar.text = driver.carModel
         binding.tvArrivingPlate.text = driver.plateNumber
-        binding.tvArrivingName.text = driver.name.substringBefore(" ")
+        binding.tvArrivingName.text = driver.name
         binding.tvArrivingRating.text = "★ ${"%.1f".format(driver.rating)}"
         binding.tvArrivingWomenRating.text = "★ ♀ ${"%.1f".format(driver.womenRating)}"
-        val avatarColors = listOf(0xFF6C5CE7, 0xFF00B894, 0xFF0984E3, 0xFFE17055, 0xFF00CEC9, 0xFFFDAB5D, 0xFF74B9FF)
-        val circleColor = avatarColors[driver.id % avatarColors.size].toInt()
-        binding.tvArrivingAvatar.background = android.graphics.drawable.GradientDrawable().apply {
-            shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(circleColor)
+        val arrivingPhoto = driverPhotoRes(driver.name)
+        if (arrivingPhoto != null) {
+            binding.ivArrivingPhoto.setImageResource(arrivingPhoto)
+            binding.ivArrivingPhoto.visibility = View.VISIBLE
+            binding.tvArrivingAvatar.visibility = View.GONE
+        } else {
+            binding.ivArrivingPhoto.visibility = View.GONE
+            binding.tvArrivingAvatar.visibility = View.VISIBLE
+            val avatarColors = listOf(0xFF6C5CE7, 0xFF00B894, 0xFF0984E3, 0xFFE17055, 0xFF00CEC9, 0xFFFDAB5D, 0xFF74B9FF)
+            val circleColor = avatarColors[driver.id % avatarColors.size].toInt()
+            binding.tvArrivingAvatar.background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(circleColor)
+            }
+            val initials = driver.name.trim().split(Regex("\\s+"))
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .take(2).joinToString("")
+            binding.tvArrivingAvatar.text = initials
         }
-        binding.tvArrivingAvatar.text = driver.name.first().uppercaseChar().toString()
         binding.btnCancelArriving.setOnClickListener {
             animJob?.cancel()
             hideImmediately(binding.cardDriverArriving)
@@ -751,16 +802,28 @@ class MainActivity : AppCompatActivity() {
         binding.tvInRideEta.text = "You will arrive at ~$etaStr"
         binding.tvInRideCar.text = driver.carModel
         binding.tvInRidePlate.text = driver.plateNumber
-        binding.tvInRideDriverName.text = driver.name.substringBefore(" ")
+        binding.tvInRideDriverName.text = driver.name
         binding.tvInRideRating.text = "★ ${"%.1f".format(driver.rating)}"
         binding.tvInRideWomenRating.text = "★ ♀ ${"%.1f".format(driver.womenRating)}"
 
-        val avatarColors = listOf(0xFF6C5CE7, 0xFF00B894, 0xFF0984E3, 0xFFE17055, 0xFF00CEC9, 0xFFFDAB5D, 0xFF74B9FF)
-        val circleColor = avatarColors[driver.id % avatarColors.size].toInt()
-        binding.tvInRideAvatar.background = android.graphics.drawable.GradientDrawable().apply {
-            shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(circleColor)
+        val inRidePhoto = driverPhotoRes(driver.name)
+        if (inRidePhoto != null) {
+            binding.ivInRidePhoto.setImageResource(inRidePhoto)
+            binding.ivInRidePhoto.visibility = View.VISIBLE
+            binding.tvInRideAvatar.visibility = View.GONE
+        } else {
+            binding.ivInRidePhoto.visibility = View.GONE
+            binding.tvInRideAvatar.visibility = View.VISIBLE
+            val avatarColors = listOf(0xFF6C5CE7, 0xFF00B894, 0xFF0984E3, 0xFFE17055, 0xFF00CEC9, 0xFFFDAB5D, 0xFF74B9FF)
+            val circleColor = avatarColors[driver.id % avatarColors.size].toInt()
+            binding.tvInRideAvatar.background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(circleColor)
+            }
+            val initials = driver.name.trim().split(Regex("\\s+"))
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .take(2).joinToString("")
+            binding.tvInRideAvatar.text = initials
         }
-        binding.tvInRideAvatar.text = driver.name.first().uppercaseChar().toString()
         binding.cardInRide.slideUp()
 
         animJob = lifecycleScope.launch {

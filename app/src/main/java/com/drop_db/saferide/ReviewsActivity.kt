@@ -5,6 +5,7 @@ import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import android.view.View
 import com.drop_db.saferide.databinding.ActivityReviewsBinding
 import com.drop_db.saferide.model.MockReviews
 import com.drop_db.saferide.model.Review
@@ -38,16 +39,35 @@ class ReviewsActivity : AppCompatActivity() {
 
         allReviews = MockReviews.forDriver(templateIndex)
         val womenReviews = allReviews.filter { it.isFromWoman }
+        val allReviewsForUi = if (templateIndex == 4) allReviews.shuffled() else allReviews
 
         // Toolbar
         binding.tvDriverNameTitle.text = driverName
-        binding.tvDriverAvatar.text = driverName
-            .trim()
-            .split(Regex("\\s+"))
-            .mapNotNull { it.firstOrNull()?.toString() }
-            .take(2)
-            .joinToString("")
-        binding.tvDriverAvatar.background.setTint(0xFF90D800.toInt())
+        val photoRes = when {
+            driverName.startsWith("Anna K.") -> R.drawable.anna_k
+            driverName.startsWith("Sara T.") -> R.drawable.sara_t
+            driverName.startsWith("Alex V.") -> R.drawable.alex_v
+            driverName.startsWith("David S.") -> R.drawable.david_s
+            driverName.startsWith("Maria P.") -> R.drawable.maria_p
+            driverName.startsWith("John M.") -> R.drawable.john_m
+            driverName.startsWith("Olivia R.") -> R.drawable.olivia_r
+            else -> null
+        }
+        if (photoRes != null) {
+            binding.ivDriverPhoto.setImageResource(photoRes)
+            binding.ivDriverPhoto.visibility = View.VISIBLE
+            binding.tvDriverAvatar.visibility = View.GONE
+        } else {
+            binding.ivDriverPhoto.visibility = View.GONE
+            binding.tvDriverAvatar.visibility = View.VISIBLE
+            binding.tvDriverAvatar.text = driverName
+                .trim()
+                .split(Regex("\\s+"))
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .take(2)
+                .joinToString("")
+            binding.tvDriverAvatar.background.setTint(0xFF90D800.toInt())
+        }
         binding.tvDriverRatingLine.text = SpannableStringBuilder().apply {
             val overall = "★ %.1f overall".format(overallRating)
             val women = " ★ ♀ %.1f women".format(womenRating)
@@ -71,12 +91,12 @@ class ReviewsActivity : AppCompatActivity() {
 
         // Tabs
         updateTabs()
-        adapter.submitList(allReviews)
+        adapter.submitList(allReviewsForUi)
 
         binding.btnTabAll.setOnClickListener {
             showingWomenOnly = false
             updateTabs()
-            adapter.submitList(allReviews)
+            adapter.submitList(allReviewsForUi)
         }
 
         binding.btnTabWomen.setOnClickListener {
