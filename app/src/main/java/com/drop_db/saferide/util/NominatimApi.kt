@@ -41,6 +41,11 @@ object NominatimApi {
         fetch("$encoded&format=json&limit=7&addressdetails=1")
     }
 
+    suspend fun reverse(lat: Double, lon: Double): NominatimResult? = withContext(Dispatchers.IO) {
+        val params = "lat=$lat&lon=$lon&format=json&addressdetails=1"
+        fetchReverse(params)
+    }
+
     private fun buildViewbox(lat: Double, lon: Double, delta: Double): String {
         val minLon = lon - delta
         val maxLon = lon + delta
@@ -64,6 +69,21 @@ object NominatimApi {
         }
     }
 
+    private fun fetchReverse(params: String): NominatimResult? {
+        val url = "https://nominatim.openstreetmap.org/reverse?$params"
+        return try {
+            val connection = URL(url).openConnection() as HttpsURLConnection
+            connection.setRequestProperty("User-Agent", "SafeRideApp/1.0")
+            connection.connectTimeout = 6000
+            connection.readTimeout = 6000
+            val json = connection.inputStream.bufferedReader().readText()
+            connection.disconnect()
+            parseReverse(json)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun parseResults(json: String): List<NominatimResult> {
         val arr = JSONArray(json)
         val results = mutableListOf<NominatimResult>()
@@ -82,5 +102,18 @@ object NominatimApi {
             )
         }
         return results
+    }
+
+    private fun parseReverse(json: String): NominatimResult? {
+        val obj = org.json.JSONObject(json)
+        val displayName = obj.optString("display_name", "")
+        val lat = obj.optDouble("lat", 0.0)
+        val lon = obj.optDouble("lon", 0.0)
+        if (displayName.isBlank()) return null
+        return NominatimResult(
+            displayName = displayName,
+            shortName = displayName.substringBefore(",").trim(),
+            geoPoint = GeoPoint(lat, lon)
+        )
     }
 }

@@ -9,6 +9,7 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
+import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -19,6 +20,7 @@ import com.drop_db.saferide.model.ALL_TARIFFS
 import com.drop_db.saferide.model.MockData
 import com.drop_db.saferide.model.MockDriver
 import com.drop_db.saferide.model.Tariff
+import com.drop_db.saferide.util.NominatimApi
 import com.drop_db.saferide.util.OsrmApi
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
@@ -45,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     private var destinationMarker: Marker? = null
     private var userMarker: Marker? = null
     private var userLocation: GeoPoint? = null
+    private var selectedDestinationName: String = ""
 
     // ── Tariff ────────────────────────────────────────────────────────────────
     private lateinit var tariffAdapter: TariffAdapter
@@ -133,21 +136,52 @@ class MainActivity : AppCompatActivity() {
             setTileSource(TileSourceFactory.MAPNIK)
             zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
             setMultiTouchControls(true)
-            controller.setZoom(15.0)
+            controller.setZoom(18.0)
         }
     }
 
     private fun setupListeners() {
+        setupTransportSwitcher()
         binding.btnWhereTo.setOnClickListener {
             searchLauncher.launch(Intent(this, SearchActivity::class.java).apply {
                 userLocation?.let {
                     putExtra(SearchActivity.EXTRA_USER_LAT, it.latitude)
                     putExtra(SearchActivity.EXTRA_USER_LON, it.longitude)
                 }
+                putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
             })
         }
         binding.fabMyLocation.setOnClickListener {
-            userLocation?.let { binding.mapView.controller.animateTo(it) }
+            centerOnUserLocation()
+        }
+    }
+
+    private fun setupTransportSwitcher() {
+        val transportViews = listOf(
+            binding.transportFourSeater,
+            binding.transportSixSeater,
+            binding.transportCouriers,
+            binding.transportCityToCity
+        )
+
+        fun selectTransport(selected: LinearLayout) {
+            transportViews.forEach { transport ->
+                transport.setBackgroundResource(
+                    if (transport === selected) R.drawable.bg_transport_selected
+                    else R.drawable.bg_transport_item
+                )
+            }
+        }
+
+        transportViews.forEach { transport ->
+            transport.setOnClickListener { selectTransport(transport) }
+        }
+    }
+
+    private fun centerOnUserLocation() {
+        userLocation?.let {
+            binding.mapView.controller.animateTo(it)
+            binding.mapView.controller.setZoom(18.5)
         }
     }
 
@@ -155,21 +189,22 @@ class MainActivity : AppCompatActivity() {
     private fun setupTariffPanel() {
         tariffAdapter = TariffAdapter(tariffs) { t ->
             selectedTariff = t
-            updateBookButton()
         }
         binding.rvTariffs.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = tariffAdapter
         }
         binding.btnCloseTariff.setOnClickListener {
             binding.cardTariff.slideDown()
             clearRoute()
+            setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
         }
         binding.btnBook.setOnClickListener { startDriverSearch() }
     }
 
     private fun showTariffPanel(distanceKm: Double, nearestEta: Int) {
+        setHomeChromeVisible(false)
         tariffs.forEachIndexed { i, t ->
             val base = 0.90 + distanceKm * 1.20
             tariffs[i] = t.copy(
@@ -178,18 +213,17 @@ class MainActivity : AppCompatActivity() {
             )
         }
         selectedTariff = tariffs.first()
+        tariffAdapter.selectTariff(selectedTariff.id)
         tariffAdapter.notifyDataSetChanged()
-        updateBookButton()
 
         val timeMin = (distanceKm / 30.0 * 60).roundToInt()
-        binding.tvRouteSummary.text = "${"%.1f".format(distanceKm)} km  •  ~$timeMin min drive"
+        binding.tvRouteSummary.text = "${"%.1f".format(distanceKm)} km  •  ~$timeMin min"
+        binding.tvRouteFrom.text = binding.tvPickupAddress.text.toString().substringBefore(",").trim()
+        binding.tvRouteTo.text = selectedDestinationName.ifBlank { "Destination" }
+        binding.tvRouteEtaBadge.text = "~$timeMin min"
 
         binding.cardWhereTo.slideDown()
         binding.cardTariff.slideUp()
-    }
-
-    private fun updateBookButton() {
-        binding.btnBook.text = "Book ${selectedTariff.name}  —  €${"%.2f".format(selectedTariff.price)}"
     }
 
     // ── PANEL 3: Searching ────────────────────────────────────────────────────
@@ -198,6 +232,7 @@ class MainActivity : AppCompatActivity() {
             searchJob?.cancel()
             binding.cardSearching.slideDown()
             clearRoute()
+            setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
         }
     }
@@ -259,8 +294,15 @@ class MainActivity : AppCompatActivity() {
         binding.btnCloseDriverList.setOnClickListener {
             binding.panelDriverList.slideDown()
             clearRoute()
+            setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
         }
+    }
+
+    private fun setHomeChromeVisible(visible: Boolean) {
+        val visibility = if (visible) View.VISIBLE else View.GONE
+        binding.btnMenu.visibility = visibility
+        binding.cardPickupPoint.visibility = visibility
     }
 
     private fun showDriverList(drivers: List<MockDriver>, center: GeoPoint) {
@@ -331,9 +373,31 @@ class MainActivity : AppCompatActivity() {
     private fun onLocationReady(location: GeoPoint) {
         userLocation = location
         binding.mapView.controller.animateTo(location)
-        binding.mapView.controller.setZoom(15.0)
+        binding.mapView.controller.setZoom(18.5)
         placeUserMarker(location)
         spawnCars(location)
+        loadPickupAddress(location)
+    }
+
+    private fun loadPickupAddress(location: GeoPoint) {
+        lifecycleScope.launch {
+            val result = NominatimApi.reverse(location.latitude, location.longitude)
+            val address = result?.displayName
+                ?.substringBefore(", Cyprus")
+                ?.substringBefore(", Kipr")
+                ?.trim()
+                .orEmpty()
+
+            if (address.isNotBlank()) {
+                updatePickupPoint(address)
+            } else {
+                updatePickupPoint("${"%.5f".format(location.latitude)}, ${"%.5f".format(location.longitude)}")
+            }
+        }
+    }
+
+    private fun updatePickupPoint(address: String) {
+        binding.tvPickupAddress.text = address
     }
 
     // ── Overlays ──────────────────────────────────────────────────────────────
@@ -343,7 +407,7 @@ class MainActivity : AppCompatActivity() {
             position = location
             icon = ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_user_dot)
             title = "You are here"
-            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         }
         binding.mapView.overlays.add(userMarker)
         binding.mapView.invalidate()
@@ -407,6 +471,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun drawRouteTo(destination: GeoPoint, name: String) {
         val origin = userLocation ?: return
+        selectedDestinationName = name
         clearRoute()
 
         destinationMarker = Marker(binding.mapView).apply {
@@ -421,23 +486,31 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val points = OsrmApi.getRoute(origin, destination)
-                if (points.isNotEmpty()) {
-                    routeOverlay = Polyline(binding.mapView).apply {
-                        setPoints(points)
-                        outlinePaint.color = ContextCompat.getColor(this@MainActivity, R.color.route_color)
-                        outlinePaint.strokeWidth = 13f
-                        outlinePaint.alpha = 200
-                    }
-                    binding.mapView.overlays.add(0, routeOverlay)
-                    binding.mapView.invalidate()
+                val osrmPoints = OsrmApi.getRoute(origin, destination)
+                val routePoints = if (osrmPoints.isNotEmpty()) osrmPoints else listOf(origin, destination)
 
-                    val box = BoundingBox.fromGeoPoints(listOf(origin, destination))
-                    binding.mapView.post { binding.mapView.zoomToBoundingBox(box, true, 160) }
+                routeOverlay = Polyline(binding.mapView).apply {
+                    setPoints(routePoints)
+                    outlinePaint.color = ContextCompat.getColor(this@MainActivity, R.color.route_color)
+                    outlinePaint.strokeWidth = 13f
+                    outlinePaint.alpha = if (osrmPoints.isNotEmpty()) 200 else 150
+                }
+                binding.mapView.overlays.add(0, routeOverlay)
+                binding.mapView.invalidate()
 
-                    routeDistanceKmLast = routeDistanceKm(points)
-                    val nearestEta = MockData.driversAround(origin).minOf { it.eta }
-                    showTariffPanel(routeDistanceKmLast, nearestEta)
+                val box = BoundingBox.fromGeoPoints(listOf(origin, destination))
+                binding.mapView.post { binding.mapView.zoomToBoundingBox(box, true, 160) }
+
+                routeDistanceKmLast = routeDistanceKm(routePoints).coerceAtLeast(0.3)
+                val nearestEta = MockData.driversAround(origin).minOf { it.eta }
+                showTariffPanel(routeDistanceKmLast, nearestEta)
+
+                if (osrmPoints.isEmpty()) {
+                    Snackbar.make(
+                        binding.root,
+                        "Couldn't load road route. Showing direct path instead.",
+                        Snackbar.LENGTH_LONG
+                    ).show()
                 }
             } finally {
                 binding.loadingOverlay.visibility = View.GONE

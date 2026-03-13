@@ -10,22 +10,23 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- SafeRide light theme -->
-    <color name="brand_primary">#6C5CE7</color>
-    <color name="brand_primary_light">#EEF0FF</color>
-    <color name="brand_accent">#FF6584</color>
+    <color name="brand_primary">#3D83E6</color>
+    <color name="brand_primary_light">#D7E9FB</color>
+    <color name="brand_accent">#F85E5E</color>
 
-    <color name="bg_screen">#F7F8FA</color>
+    <color name="bg_screen">#EEF1F4</color>
     <color name="bg_card">#FFFFFF</color>
-    <color name="bg_input">#F0F1F8</color>
+    <color name="bg_input">#F3F4F6</color>
     <color name="bg_pill_map">#FFFFFFFF</color>
+    <color name="bg_transport_selected">#DDEDF8</color>
 
-    <color name="text_primary">#1A1A2E</color>
-    <color name="text_secondary">#7B7FA3</color>
-    <color name="text_hint">#ADADCC</color>
+    <color name="text_primary">#161616</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#A0A0A0</color>
 
-    <color name="divider">#EBEBF5</color>
+    <color name="divider">#E7E7E7</color>
     <color name="car_yellow">#FFD93D</color>
-    <color name="route_color">#6C5CE7</color>
+    <color name="route_color">#3D83E6</color>
 
     <color name="shadow_color">#1A000000</color>
 </resources>

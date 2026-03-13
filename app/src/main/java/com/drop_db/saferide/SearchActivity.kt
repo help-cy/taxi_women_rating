@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,22 +26,26 @@ class SearchActivity : AppCompatActivity() {
     // User's current location for search biasing
     private var userLat: Double = 0.0
     private var userLon: Double = 0.0
+    private var pickupAddress: String = "Current location"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         userLat = intent.getDoubleExtra(EXTRA_USER_LAT, 0.0)
         userLon = intent.getDoubleExtra(EXTRA_USER_LON, 0.0)
+        pickupAddress = intent.getStringExtra(EXTRA_PICKUP_ADDRESS) ?: "Current location"
 
         setupRecyclerView()
         setupSearch()
+        binding.tvFromAddress.text = pickupAddress.substringBefore(",").trim().ifBlank { pickupAddress }
         binding.btnBack.setOnClickListener { finish() }
     }
 
     private fun setupRecyclerView() {
-        adapter = SearchResultAdapter { result -> returnResult(result) }
+        adapter = SearchResultAdapter(userLat, userLon) { result -> returnResult(result) }
         binding.rvResults.layoutManager = LinearLayoutManager(this)
         binding.rvResults.adapter = adapter
     }
@@ -52,8 +57,10 @@ class SearchActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
             override fun afterTextChanged(s: Editable?) {
                 val query = s?.toString()?.trim() ?: ""
+                binding.btnClearSearch.visibility = if (query.isBlank()) View.GONE else View.VISIBLE
                 searchJob?.cancel()
                 if (query.length < 2) {
+                    adapter.updateQuery("")
                     adapter.submitList(emptyList())
                     showEmptyState(true)
                     return
@@ -64,10 +71,14 @@ class SearchActivity : AppCompatActivity() {
                 }
             }
         })
+        binding.btnClearSearch.setOnClickListener {
+            binding.etSearch.text?.clear()
+        }
     }
 
     private suspend fun performSearch(query: String) {
         showEmptyState(false)
+        adapter.updateQuery(query)
         val results = NominatimApi.search(query, userLat, userLon)
         adapter.submitList(results)
         if (results.isEmpty()) {
@@ -94,6 +105,7 @@ class SearchActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_USER_LAT = "extra_user_lat"
         const val EXTRA_USER_LON = "extra_user_lon"
+        const val EXTRA_PICKUP_ADDRESS = "extra_pickup_address"
         const val EXTRA_LAT = "extra_lat"
         const val EXTRA_LON = "extra_lon"
         const val EXTRA_NAME = "extra_name"

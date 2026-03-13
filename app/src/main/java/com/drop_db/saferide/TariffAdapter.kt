@@ -22,35 +22,62 @@ class TariffAdapter(
 
     override fun getItemCount() = items.size
 
+    fun selectTariff(id: String) {
+        val prev = items.indexOfFirst { it.id == selectedId }
+        selectedId = id
+        if (prev >= 0) notifyItemChanged(prev)
+        val next = items.indexOfFirst { it.id == id }
+        if (next >= 0) notifyItemChanged(next)
+    }
+
     override fun onBindViewHolder(holder: VH, position: Int) {
         val tariff = items[position]
-        val ctx = holder.itemView.context
+        val selected = tariff.id == selectedId
         with(holder.binding) {
-            tvEmoji.text = tariff.emoji
-            tvName.text = tariff.name
-            tvTagline.text = tariff.tagline
-            tvPrice.text = "€%.2f".format(tariff.price)
-            tvEta.text = "~${tariff.etaMin} min"
-
-            val selected = tariff.id == selectedId
-            root.background = ContextCompat.getDrawable(
-                ctx,
-                if (selected) R.drawable.bg_tariff_selected else R.drawable.bg_tariff_default
-            )
-            tvName.setTextColor(
-                ContextCompat.getColor(
-                    ctx,
-                    if (selected) R.color.brand_primary else R.color.text_primary
-                )
+            val context = root.context
+            ivIcon.setImageResource(iconFor(tariff))
+            tvName.text = labelFor(tariff)
+            tvMeta.text = "${seatsFor(tariff)} • ${tariff.etaMin} min"
+            tvTagline.text = taglineFor(tariff)
+            tvPrice.text = if (selected) "€%.0f".format(tariff.price) else "~€%.0f".format(tariff.price)
+            tariffContainer.background = ContextCompat.getDrawable(
+                context,
+                if (selected) R.drawable.bg_tariff_row_selected else R.drawable.bg_tariff_row_default
             )
 
-            root.setOnClickListener {
-                val prev = items.indexOfFirst { it.id == selectedId }
-                selectedId = tariff.id
-                notifyItemChanged(prev)
-                notifyItemChanged(position)
+            tariffContainer.setOnClickListener {
+                selectTariff(tariff.id)
                 onSelect(tariff)
             }
         }
+    }
+
+    private fun labelFor(tariff: Tariff): String = when (tariff.id) {
+        "economy" -> "4-seater"
+        "comfort" -> "6-seater"
+        "premium" -> "Business"
+        "safeplus" -> "SafeRide+"
+        else -> tariff.name
+    }
+
+    private fun taglineFor(tariff: Tariff): String = when (tariff.id) {
+        "economy" -> "Affordable fares"
+        "comfort" -> "For large groups"
+        "premium" -> "More comfort"
+        "safeplus" -> "Extra safe trip"
+        else -> tariff.tagline
+    }
+
+    private fun seatsFor(tariff: Tariff): String = when (tariff.id) {
+        "comfort" -> "6"
+        else -> "4"
+    }
+
+    private fun iconFor(tariff: Tariff): Int = when (tariff.id) {
+        "economy" -> R.drawable.ic_transport_four_seater
+        "comfort" -> R.drawable.ic_transport_six_seater
+        "premium" -> R.drawable.ic_transport_city_to_city
+        "safeplus" -> R.drawable.ic_transport_courier
+        else -> R.drawable.ic_transport_four_seater
     }
 }
