@@ -70,8 +70,15 @@ class SearchActivity : AppCompatActivity() {
         setupMap()
         setupRecyclerView()
         setupSearchFields()
-        renderInitialValues()
+        val presetTo = intent.getStringExtra(EXTRA_PRESET_TO).orEmpty()
+        renderInitialValues(presetTo)
         setActiveField(ActiveField.TO)
+        if (presetTo.isNotBlank()) {
+            binding.etTo.setSelection(presetTo.length)
+            if (presetTo.length >= 2) {
+                lifecycleScope.launch { performSearch(presetTo) }
+            }
+        }
         binding.btnBack.setOnClickListener { finish() }
         binding.btnFromMap.setOnClickListener { restoreCurrentPickup() }
         binding.fieldFrom.setOnClickListener { setActiveField(ActiveField.FROM) }
@@ -174,10 +181,10 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    private fun renderInitialValues() {
+    private fun renderInitialValues(presetTo: String) {
         ignoreTextCallbacks = true
         binding.etFrom.setText(fromResult?.shortName.orEmpty())
-        binding.etTo.setText("")
+        binding.etTo.setText(presetTo)
         ignoreTextCallbacks = false
     }
 
@@ -282,5 +289,6 @@ class SearchActivity : AppCompatActivity() {
         const val EXTRA_LON = "extra_lon"
         const val EXTRA_NAME = "extra_name"
         const val EXTRA_ADDRESS = "extra_address"
+        const val EXTRA_PRESET_TO = "extra_preset_to"
     }
 }
