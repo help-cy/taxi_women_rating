@@ -3,6 +3,7 @@ package com.drop_db.saferide
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Point
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -214,6 +215,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun offsetMapForBottomPanel(panel: View, panelOffsetFraction: Float = 0.35f) {
+        val location = userLocation ?: return
+        binding.mapView.post {
+            val projection = binding.mapView.projection ?: return@post
+            val baseOffset = if (panel.height > 0) panel.height else (binding.mapView.height * 0.25f).roundToInt()
+            val offsetPx = (baseOffset * panelOffsetFraction).roundToInt()
+            val point = projection.toPixels(location, Point())
+            point.offset(0, offsetPx)
+            val newCenter = projection.fromPixels(point.x, point.y) as GeoPoint
+            binding.mapView.controller.animateTo(newCenter)
+        }
+    }
+
     // ── PANEL 2: Tariff ───────────────────────────────────────────────────────
     private fun setupTariffPanel() {
         tariffAdapter = TariffAdapter(
@@ -232,6 +246,7 @@ class MainActivity : AppCompatActivity() {
             clearRoute()
             setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
+            centerOnUserLocation()
         }
         binding.btnBook.setOnClickListener { startDriverSearch() }
     }
@@ -258,6 +273,7 @@ class MainActivity : AppCompatActivity() {
         binding.cardWhereTo.slideDown()
         binding.cardRoutePreview.slideUp()
         binding.cardTariff.slideUp()
+        offsetMapForBottomPanel(binding.cardTariff)
     }
 
     private fun adjustTariffPrice(tariff: Tariff, delta: Double) {
@@ -296,6 +312,7 @@ class MainActivity : AppCompatActivity() {
         hideImmediately(binding.panelDriverList)
         binding.btnCancelRequest.visibility = View.VISIBLE
         binding.fabMyLocation.visibility = View.GONE
+        centerOnUserLocation()
         driverListAdapter.submitList(emptyList())
         syncSearchingFare()
         updateSearchingDriverState(0, filtered.size)

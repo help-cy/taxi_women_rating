@@ -130,7 +130,7 @@
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#1AFFFFFF"
+        android:background="#66000000"
         android:gravity="center"
         android:visibility="gone">
 
@@ -139,6 +139,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|bottom"
             android:layout_marginBottom="196dp"
+            android:indeterminate="true"
             app:indicatorColor="#90D800"
             app:indicatorSize="56dp"
             app:trackColor="#DDE8B2"
