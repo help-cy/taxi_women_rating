@@ -1,6 +1,7 @@
 package com.drop_db.saferide
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -9,7 +10,9 @@ import com.drop_db.saferide.model.Tariff
 
 class TariffAdapter(
     private val items: List<Tariff>,
-    private val onSelect: (Tariff) -> Unit
+    private val onSelect: (Tariff) -> Unit,
+    private val onDecreasePrice: (Tariff) -> Unit,
+    private val onIncreasePrice: (Tariff) -> Unit
 ) : RecyclerView.Adapter<TariffAdapter.VH>() {
 
     var selectedId: String = items.firstOrNull()?.id ?: ""
@@ -30,6 +33,11 @@ class TariffAdapter(
         if (next >= 0) notifyItemChanged(next)
     }
 
+    fun refreshSelected() {
+        val index = items.indexOfFirst { it.id == selectedId }
+        if (index >= 0) notifyItemChanged(index)
+    }
+
     override fun onBindViewHolder(holder: VH, position: Int) {
         val tariff = items[position]
         val selected = tariff.id == selectedId
@@ -39,7 +47,11 @@ class TariffAdapter(
             tvName.text = labelFor(tariff)
             tvMeta.text = "${seatsFor(tariff)} • ${tariff.etaMin} min"
             tvTagline.text = taglineFor(tariff)
-            tvPrice.text = if (selected) "€%.0f".format(tariff.price) else "~€%.0f".format(tariff.price)
+            tvPrice.text = if (selected) "" else "~€%.0f".format(tariff.price)
+            ivSelectedAction.visibility = if (selected) View.VISIBLE else View.GONE
+            priceAdjustRow.visibility = if (selected) View.VISIBLE else View.GONE
+            tvAdjustPrice.text = "€%.0f".format(tariff.price)
+            tvRecommendedFare.text = "Recommended fare: €%.0f".format(tariff.price)
             tariffContainer.background = ContextCompat.getDrawable(
                 context,
                 if (selected) R.drawable.bg_tariff_row_selected else R.drawable.bg_tariff_row_default
@@ -49,12 +61,14 @@ class TariffAdapter(
                 selectTariff(tariff.id)
                 onSelect(tariff)
             }
+            btnDecreasePrice.setOnClickListener { onDecreasePrice(tariff) }
+            btnIncreasePrice.setOnClickListener { onIncreasePrice(tariff) }
         }
     }
 
     private fun labelFor(tariff: Tariff): String = when (tariff.id) {
-        "economy" -> "4-seater"
-        "comfort" -> "6-seater"
+        "economy" -> "Ride"
+        "comfort" -> "Comfort"
         "premium" -> "Business"
         "safeplus" -> "SafeRide+"
         else -> tariff.name

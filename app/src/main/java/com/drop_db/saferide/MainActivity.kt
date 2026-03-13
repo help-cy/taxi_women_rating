@@ -187,15 +187,20 @@ class MainActivity : AppCompatActivity() {
 
     // ── PANEL 2: Tariff ───────────────────────────────────────────────────────
     private fun setupTariffPanel() {
-        tariffAdapter = TariffAdapter(tariffs) { t ->
-            selectedTariff = t
-        }
+        tariffAdapter = TariffAdapter(
+            items = tariffs,
+            onSelect = { t -> selectedTariff = t },
+            onDecreasePrice = { t -> adjustTariffPrice(t, -1.0) },
+            onIncreasePrice = { t -> adjustTariffPrice(t, 1.0) }
+        )
         binding.rvTariffs.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = tariffAdapter
         }
         binding.btnCloseTariff.setOnClickListener {
             binding.cardTariff.slideDown()
+            binding.cardRoutePreview.slideDown()
+            binding.cardPromo.slideDown()
             clearRoute()
             setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
@@ -223,7 +228,16 @@ class MainActivity : AppCompatActivity() {
         binding.tvRouteEtaBadge.text = "~$timeMin min"
 
         binding.cardWhereTo.slideDown()
+        binding.cardRoutePreview.slideUp()
+        binding.cardPromo.slideUp()
         binding.cardTariff.slideUp()
+    }
+
+    private fun adjustTariffPrice(tariff: Tariff, delta: Double) {
+        if (tariff.id != selectedTariff.id) return
+        tariff.price = (tariff.price + delta).coerceAtLeast(1.0)
+        selectedTariff = tariff
+        tariffAdapter.refreshSelected()
     }
 
     // ── PANEL 3: Searching ────────────────────────────────────────────────────
@@ -232,6 +246,8 @@ class MainActivity : AppCompatActivity() {
             searchJob?.cancel()
             binding.cardSearching.slideDown()
             clearRoute()
+            binding.cardRoutePreview.slideDown()
+            binding.cardPromo.slideDown()
             setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
         }
@@ -294,6 +310,8 @@ class MainActivity : AppCompatActivity() {
         binding.btnCloseDriverList.setOnClickListener {
             binding.panelDriverList.slideDown()
             clearRoute()
+            binding.cardRoutePreview.slideDown()
+            binding.cardPromo.slideDown()
             setHomeChromeVisible(true)
             binding.cardWhereTo.slideUp()
         }

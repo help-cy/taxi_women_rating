@@ -135,7 +135,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginHorizontal="10dp"
         android:layout_marginBottom="0dp"
         app:cardBackgroundColor="@color/bg_card"
         app:cardCornerRadius="34dp"
@@ -181,7 +180,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:text="4-seater"
+                            android:text="Ride"
                             android:textColor="@color/text_primary"
                             android:textSize="11sp"
                             android:textStyle="bold" />
@@ -210,7 +209,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:text="6-seater"
+                            android:text="Comfort"
                             android:textColor="@color/text_primary"
                             android:textSize="11sp"
                             android:textStyle="bold" />
@@ -387,15 +386,144 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- PANEL 2: Tariff selection                                  -->
-    <!-- ══════════════════════════════════════════════════════════ -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardRoutePreview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginTop="38dp"
+        android:layout_marginHorizontal="16dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/bg_card"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="18dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="18dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_from_point" />
+
+                <TextView
+                    android:id="@+id/tvRouteFrom"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvRoutePickupTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_transport_selected"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="8dp"
+                    android:text="Entrance"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_to_point" />
+
+                <TextView
+                    android:id="@+id/tvRouteTo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvRouteEtaBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginStart="14dp"
+                    android:src="@drawable/ic_plus" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:id="@+id/cardPromo"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="top"
+        android:layout_marginHorizontal="36dp"
+        android:layout_marginTop="326dp"
+        android:background="@drawable/bg_promo_subtle"
+        android:elevation="14dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_ticket" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="Got promo code? Use it here"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_arrow_right"
+            app:tint="@color/text_primary" />
+
+    </LinearLayout>
+
     <androidx.cardview.widget.CardView
         android:id="@+id/cardTariff"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="bottom"
-        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="344dp"
         android:visibility="gone"
         app:cardBackgroundColor="@color/bg_card"
         app:cardCornerRadius="32dp"
@@ -403,7 +531,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:paddingTop="14dp"
             android:paddingBottom="18dp">
@@ -452,124 +580,15 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginHorizontal="18dp"
-                android:background="@drawable/bg_route_preview_card"
-                android:orientation="vertical"
-                android:paddingHorizontal="18dp"
-                android:paddingVertical="14dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_from_point" />
-
-                    <TextView
-                        android:id="@+id/tvRouteFrom"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvRoutePickupTag"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_transport_selected"
-                        android:paddingHorizontal="14dp"
-                        android:paddingVertical="8dp"
-                        android:text="Entrance"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_to_point" />
-
-                    <TextView
-                        android:id="@+id/tvRouteTo"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvRouteEtaBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginHorizontal="18dp"
-                android:background="@drawable/bg_where_to"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_ticket" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:text="Got promo code? Use it here"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_arrow_right"
-                    app:tint="@color/text_primary" />
-
-            </LinearLayout>
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvTariffs"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:layout_marginTop="14dp"
+                android:layout_weight="1"
                 android:clipToPadding="false"
+                android:nestedScrollingEnabled="true"
+                android:paddingBottom="12dp"
                 android:paddingHorizontal="18dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 

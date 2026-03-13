@@ -93,6 +93,10 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun returnResult(result: NominatimResult) {
+        currentFocus?.let {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+            imm.hideSoftInputFromWindow(it.windowToken, 0)
+        }
         setResult(Activity.RESULT_OK, Intent().apply {
             putExtra(EXTRA_LAT, result.geoPoint.latitude)
             putExtra(EXTRA_LON, result.geoPoint.longitude)
