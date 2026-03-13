@@ -2,5 +2,13 @@
 
 [APK file](https://fsn1.your-objectstorage.com/check-page/apk/safe-ride.apk)
 
-![1](img/1.jpg) ![2](img/2.jpg)
-![3](img/3.jpg) ![4](img/4.jpg)
+<table>
+  <tr>
+    <td><img src="img/1.jpg" width="360" /></td>
+    <td><img src="img/2.jpg" width="360" /></td>
+  </tr>
+  <tr>
+    <td><img src="img/3.jpg" width="360" /></td>
+    <td><img src="img/4.jpg" width="360" /></td>
+  </tr>
+</table>
