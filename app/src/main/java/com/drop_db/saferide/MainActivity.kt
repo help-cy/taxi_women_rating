@@ -278,6 +278,7 @@ class MainActivity : AppCompatActivity() {
         tariffs.forEachIndexed { i, t ->
             val base = 0.90 + distanceKm * 1.20
             tariffs[i] = t.copy(
+                recommendedPrice = base * t.priceMultiplier,
                 price  = base * t.priceMultiplier,
                 etaMin = (nearestEta + t.etaOffsetMin).coerceAtLeast(1)
             )
