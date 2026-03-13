@@ -862,6 +862,71 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
+            <!-- Driver mini-card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvInRideAvatar"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_avatar"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvInRideDriverName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvInRideRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="★ 4.9"
+                            android:textColor="#FFB300"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvInRideWomenRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="★ ♀ 5.0"
+                            android:textColor="#E84393"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
             <!-- Car model + plate row -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -1027,6 +1092,21 @@
                             android:paddingHorizontal="5dp"
                             android:paddingVertical="2dp"
                             android:textColor="#FFB300"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvArrivingWomenRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|end"
+                            android:layout_marginEnd="2dp"
+                            android:layout_marginBottom="-2dp"
+                            android:background="@drawable/bg_plate_badge"
+                            android:paddingHorizontal="5dp"
+                            android:paddingVertical="2dp"
+                            android:text="★ ♀ 5.0"
+                            android:textColor="#E84393"
                             android:textSize="10sp"
                             android:textStyle="bold" />
 
@@ -1205,6 +1285,198 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="16sp"
                     app:backgroundTint="@color/bg_input"
+                    app:cornerRadius="18dp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
+
+    <!-- Rate driver overlay (after arrival) -->
+    <FrameLayout
+        android:id="@+id/rateOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#B3000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="18dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#121212"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="22dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="18dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="18dp">
+
+                <ImageButton
+                    android:id="@+id/btnCloseRate"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/bg_circle_button"
+                    android:contentDescription="Close"
+                    android:scaleType="center"
+                    app:srcCompat="@drawable/ic_close"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvRateTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:text="Great"
+                    android:textColor="@color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:text="Help other women ride safer.\nHow did you feel during this trip?"
+                    android:textColor="#D5D5D5"
+                    android:textSize="14sp" />
+
+                <!-- Stars -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView android:id="@+id/star1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="★" android:textColor="#FFB300" android:textSize="42sp" />
+                    <TextView android:id="@+id/star2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="★" android:textColor="#FFB300" android:textSize="42sp" />
+                    <TextView android:id="@+id/star3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="★" android:textColor="#FFB300" android:textSize="42sp" />
+                    <TextView android:id="@+id/star4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="★" android:textColor="#FFB300" android:textSize="42sp" />
+                    <TextView android:id="@+id/star5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="★" android:textColor="#FFB300" android:textSize="42sp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center"
+                    android:text="Women-only feedback"
+                    android:textColor="#E84393"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupWomen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:singleSelection="false"
+                    app:chipSpacingHorizontal="10dp"
+                    app:chipSpacingVertical="10dp">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFeltSafe"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Felt safe"
+                        android:textColor="@color/white"
+                        app:chipBackgroundColor="#2A2A2A"
+                        app:chipCornerRadius="18dp"
+                        app:chipStrokeColor="#404040"
+                        app:chipStrokeWidth="1dp"
+                        app:checkedIconVisible="false" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipRespectful"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Respectful"
+                        android:textColor="@color/white"
+                        app:chipBackgroundColor="#2A2A2A"
+                        app:chipCornerRadius="18dp"
+                        app:chipStrokeColor="#404040"
+                        app:chipStrokeWidth="1dp"
+                        app:checkedIconVisible="false" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipBoundaries"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Boundaries respected"
+                        android:textColor="@color/white"
+                        app:chipBackgroundColor="#2A2A2A"
+                        app:chipCornerRadius="18dp"
+                        app:chipStrokeColor="#404040"
+                        app:chipStrokeWidth="1dp"
+                        app:checkedIconVisible="false" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipQuiet"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No awkward talk"
+                        android:textColor="@color/white"
+                        app:chipBackgroundColor="#2A2A2A"
+                        app:chipCornerRadius="18dp"
+                        app:chipStrokeColor="#404040"
+                        app:chipStrokeWidth="1dp"
+                        app:checkedIconVisible="false" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipClean"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Clean &amp; tidy"
+                        android:textColor="@color/white"
+                        app:chipBackgroundColor="#2A2A2A"
+                        app:chipCornerRadius="18dp"
+                        app:chipStrokeColor="#404040"
+                        app:chipStrokeWidth="1dp"
+                        app:checkedIconVisible="false" />
+
+                </com.google.android.material.chip.ChipGroup>
+
+                <EditText
+                    android:id="@+id/etRateComment"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_rate_comment"
+                    android:hint="Comment (optional)"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#8F8F8F"
+                    android:singleLine="true" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSubmitRate"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="16dp"
+                    android:text="Submit"
+                    android:textAllCaps="false"
+                    android:textColor="#0B0F00"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#B7F006"
                     app:cornerRadius="18dp" />
 
             </LinearLayout>
