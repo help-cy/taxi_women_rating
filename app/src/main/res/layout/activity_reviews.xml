@@ -183,6 +183,7 @@
             android:layout_width="0dp"
             android:layout_height="36dp"
             android:layout_weight="1"
+            android:textAllCaps="false"
             android:text="All reviews"
             android:textSize="13sp"
             app:cornerRadius="10dp" />
@@ -193,6 +194,7 @@
             android:layout_height="36dp"
             android:layout_marginStart="10dp"
             android:layout_weight="1"
+            android:textAllCaps="false"
             android:text="Women only"
             android:textSize="13sp"
             app:cornerRadius="10dp" />

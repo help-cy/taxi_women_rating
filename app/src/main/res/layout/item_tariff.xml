@@ -63,7 +63,7 @@
                         android:id="@+id/tvMeta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
+                        android:layout_marginStart="0dp"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 

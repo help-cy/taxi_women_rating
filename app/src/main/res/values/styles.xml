@@ -1,0 +1,6 @@
+<resources>
+    <style name="TextAppearance.SafeRide.Button" parent="TextAppearance.MaterialComponents.Button">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+</resources>

@@ -195,27 +195,27 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPass"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="60dp"
             android:layout_weight="50"
             android:text="Decline"
             android:textAllCaps="false"
-            android:textColor="@color/text_secondary"
-            android:textSize="13sp"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
             app:backgroundTint="@color/bg_input"
-            app:cornerRadius="12dp" />
+            app:cornerRadius="18dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBook"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="60dp"
             android:layout_marginStart="10dp"
             android:layout_weight="50"
             android:text="Accept"
             android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="13sp"
-            app:backgroundTint="#90D800"
-            app:cornerRadius="12dp" />
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            app:backgroundTint="#B7F006"
+            app:cornerRadius="18dp" />
 
     </LinearLayout>
 
