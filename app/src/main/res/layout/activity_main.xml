@@ -337,11 +337,12 @@
                     app:tint="@color/text_secondary" />
 
                 <TextView
+                    android:id="@+id/tvSuggested1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
                     android:layout_weight="1"
-                    android:text="Parklane Luxury Collection Resort &amp; Spa"
+                    android:text="Columbia Beach"
                     android:textColor="@color/text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -362,6 +363,7 @@
                     app:tint="@color/text_secondary" />
 
                 <TextView
+                    android:id="@+id/tvSuggested2"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
@@ -387,6 +389,7 @@
                     app:tint="@color/text_secondary" />
 
                 <TextView
+                    android:id="@+id/tvSuggested3"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
