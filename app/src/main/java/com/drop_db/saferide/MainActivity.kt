@@ -72,7 +72,9 @@ class MainActivity : AppCompatActivity() {
         val marker: Marker,
         val spawn: GeoPoint,
         var pos: GeoPoint,
-        var target: GeoPoint
+        var routePoints: List<GeoPoint>,
+        var routeIndex: Int,
+        var segmentProgress: Float
     )
 
     private val carStates = mutableListOf<CarState>()
@@ -903,7 +905,7 @@ class MainActivity : AppCompatActivity() {
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
             }
             binding.mapView.overlays.add(marker)
-            carStates.add(CarState(driver, marker, spawn, GeoPoint(spawn), pickTarget(spawn, spawn)))
+            carStates.add(CarState(driver, marker, spawn, GeoPoint(spawn), emptyList(), 0, 0f))
         }
         binding.mapView.invalidate()
         startCarAnimation()
@@ -914,18 +916,37 @@ class MainActivity : AppCompatActivity() {
         animJob = lifecycleScope.launch {
             while (isActive) {
                 carStates.forEach { car ->
-                    val tLat = car.target.latitude; val tLon = car.target.longitude
-                    val cLat = car.pos.latitude;    val cLon = car.pos.longitude
-                    val newLat = cLat + (tLat - cLat) * 0.018
-                    val newLon = cLon + (tLon - cLon) * 0.018
-                    val newPos = GeoPoint(newLat, newLon)
-                    val dLat = tLat - cLat; val dLon = tLon - cLon
+                    if (car.routePoints.size < 2 || car.routeIndex >= car.routePoints.size - 1) {
+                        val route = buildCarRoute(car.pos, car.spawn)
+                        if (route.size < 2) return@forEach
+                        car.routePoints = route
+                        car.routeIndex = 0
+                        car.segmentProgress = 0f
+                    }
+
+                    val from = car.routePoints[car.routeIndex]
+                    val to = car.routePoints[car.routeIndex + 1]
+                    val segLen = from.distanceToAsDouble(to).coerceAtLeast(1e-6)
+                    val stepFrac = (9.0 / segLen).coerceAtMost(1.0)
+                    car.segmentProgress = (car.segmentProgress + stepFrac).toFloat()
+
+                    val newPos = if (car.segmentProgress >= 1f) {
+                        car.routeIndex += 1
+                        car.segmentProgress = 0f
+                        to
+                    } else {
+                        GeoPoint(
+                            from.latitude + (to.latitude - from.latitude) * car.segmentProgress,
+                            from.longitude + (to.longitude - from.longitude) * car.segmentProgress
+                        )
+                    }
+
+                    val dLat = newPos.latitude - car.pos.latitude
+                    val dLon = newPos.longitude - car.pos.longitude
                     if (dLat * dLat + dLon * dLon > 1e-12)
                         car.marker.rotation = Math.toDegrees(atan2(dLon, dLat)).toFloat()
                     car.marker.position = newPos
                     car.pos = newPos
-                    if (newPos.distanceToAsDouble(car.target) < 15.0)
-                        car.target = pickTarget(newPos, car.spawn)
                 }
                 binding.mapView.invalidate()
                 delay(120L)
@@ -933,13 +954,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun pickTarget(current: GeoPoint, spawn: GeoPoint): GeoPoint {
-        repeat(10) {
+    private suspend fun buildCarRoute(current: GeoPoint, spawn: GeoPoint): List<GeoPoint> {
+        repeat(4) {
             val dir = roadDirs.random()
-            val c = GeoPoint(current.latitude + dir.first, current.longitude + dir.second)
-            if (c.distanceToAsDouble(spawn) < 500.0) return c
+            val candidate = GeoPoint(current.latitude + dir.first, current.longitude + dir.second)
+            if (candidate.distanceToAsDouble(spawn) > 500.0) return@repeat
+            val route = OsrmApi.getRoute(current, candidate)
+            if (route.size >= 2) return route
         }
-        return spawn
+        val fallback = OsrmApi.getRoute(current, spawn)
+        return if (fallback.size >= 2) fallback else emptyList()
     }
 
     // ── Route ─────────────────────────────────────────────────────────────────
