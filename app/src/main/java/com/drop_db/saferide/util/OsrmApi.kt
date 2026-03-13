@@ -4,8 +4,6 @@ import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -36,55 +34,35 @@ object OsrmApi {
 
         SERVERS.forEach { base ->
             scope.launch {
-                val result = runCatching { fetch(base, from, to) }.getOrElse { emptyList<GeoPoint>() }
+                val result = runCatching { fetch(base, from, to) }.getOrElse { emptyList() }
 
                 if (result.size >= 2) {
-                    winner.complete(result)          // first valid result wins; subsequent calls are no-ops
+                    winner.complete(result)
                 }
                 if (pending.decrementAndGet() == 0) {
-                    winner.complete(emptyList())     // all failed — unblock the caller
+                    winner.complete(emptyList())
                 }
             }
         }
 
-        return withTimeoutOrNull(12_000) { winner.await() } ?: emptyList()
+        return withTimeoutOrNull(10_000) { winner.await() } ?: emptyList()
     }
 
     // ── internals ─────────────────────────────────────────────────────────────
 
-    private suspend fun fetch(baseUrl: String, from: GeoPoint, to: GeoPoint): List<GeoPoint> {
-        val nearestBase = baseUrl.replace("/route/v1/driving/", "/nearest/v1/driving/")
-        // Snap both coordinates to nearest road in parallel
-        val (snappedFrom, snappedTo) = coroutineScope {
-            val f = async(Dispatchers.IO) { snapToRoad(nearestBase, from) ?: from }
-            val t = async(Dispatchers.IO) { snapToRoad(nearestBase, to)   ?: to   }
-            f.await() to t.await()
-        }
-        val url = "$baseUrl${snappedFrom.longitude},${snappedFrom.latitude}" +
-                  ";${snappedTo.longitude},${snappedTo.latitude}" +
+    private fun fetch(baseUrl: String, from: GeoPoint, to: GeoPoint): List<GeoPoint> {
+        val url = "$baseUrl${from.longitude},${from.latitude}" +
+                  ";${to.longitude},${to.latitude}" +
                   "?overview=full&geometries=polyline"
         val json = request(url)
-        Log.d("OSRM", "route response (first 200): ${json.take(200)}")
         return parse(json)
     }
 
-    private fun snapToRoad(nearestBase: String, point: GeoPoint): GeoPoint? {
-        return try {
-            val url  = "$nearestBase${point.longitude},${point.latitude}"
-            val json = JSONObject(request(url, timeoutMs = 2000))
-            if (json.optString("code") != "Ok") return null
-            val waypoints = json.optJSONArray("waypoints") ?: return null
-            if (waypoints.length() == 0) return null
-            val loc = waypoints.getJSONObject(0).optJSONArray("location") ?: return null
-            GeoPoint(loc.getDouble(1), loc.getDouble(0))
-        } catch (_: Exception) { null }
-    }
-
-    private fun request(url: String, timeoutMs: Int = 6000): String {
+    private fun request(url: String): String {
         val conn = URL(url).openConnection() as HttpsURLConnection
         conn.setRequestProperty("User-Agent", "SafeRideApp/1.0")
-        conn.connectTimeout = timeoutMs
-        conn.readTimeout    = timeoutMs
+        conn.connectTimeout = 8000
+        conn.readTimeout    = 8000
         return conn.inputStream.bufferedReader().use { it.readText() }
             .also { conn.disconnect() }
     }
