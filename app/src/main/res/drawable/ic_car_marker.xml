@@ -6,12 +6,12 @@
 
     <!-- Car body (front = top, pointing North at rotation=0) -->
     <path
-        android:fillColor="#FFD93D"
+        android:fillColor="#1F1F1F"
         android:pathData="M1,5 Q1,1 7,1 Q13,1 13,5 L13,18 Q13,21 7,21 Q1,21 1,18 Z" />
 
     <!-- Cabin roof tint -->
     <path
-        android:fillColor="#F0C010"
+        android:fillColor="#2B2B2B"
         android:pathData="M3,5 L11,5 L11,14 L3,14 Z" />
 
     <!-- Front windshield -->
