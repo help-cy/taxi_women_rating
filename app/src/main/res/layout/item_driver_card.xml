@@ -21,16 +21,32 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- Avatar circle -->
-        <TextView
-            android:id="@+id/tvInitials"
+        <!-- Avatar -->
+        <FrameLayout
             android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_avatar"
-            android:gravity="center"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:layout_height="48dp">
+
+            <ImageView
+                android:id="@+id/ivAvatarPhoto"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_avatar"
+                android:clipToOutline="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/anna_k"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvInitials"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_avatar"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </FrameLayout>
 
         <!-- Name / car / ETA -->
         <LinearLayout

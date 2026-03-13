@@ -61,8 +61,26 @@ class DriverListAdapter(
             val initials = d.name.split(" ")
                 .mapNotNull { it.firstOrNull()?.toString() }
                 .take(2).joinToString("")
-            tvInitials.text = initials
-            tvInitials.background.setTint(avatarColors[position % avatarColors.size])
+            val photoRes = when {
+                d.name.startsWith("Anna K.") -> R.drawable.anna_k
+                d.name.startsWith("Sara T.") -> R.drawable.sara_t
+                d.name.startsWith("Alex V.") -> R.drawable.alex_v
+                d.name.startsWith("David S.") -> R.drawable.david_s
+                d.name.startsWith("Maria P.") -> R.drawable.maria_p
+                d.name.startsWith("John M.") -> R.drawable.john_m
+                d.name.startsWith("Olivia R.") -> R.drawable.olivia_r
+                else -> null
+            }
+            if (photoRes != null) {
+                ivAvatarPhoto.setImageResource(photoRes)
+                ivAvatarPhoto.visibility = View.VISIBLE
+                tvInitials.visibility = View.GONE
+            } else {
+                ivAvatarPhoto.visibility = View.GONE
+                tvInitials.visibility = View.VISIBLE
+                tvInitials.text = initials
+                tvInitials.background.setTint(avatarColors[position % avatarColors.size])
+            }
 
             // Basic info
             tvDriverName.text = d.name

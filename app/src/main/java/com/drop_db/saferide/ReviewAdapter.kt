@@ -45,11 +45,29 @@ class ReviewAdapter : RecyclerView.Adapter<ReviewAdapter.VH>() {
                 .split(" ")
                 .mapNotNull { it.firstOrNull()?.toString() }
                 .take(2).joinToString("")
-            tvReviewerInitials.text = initials
-            tvReviewerInitials.background.setTint(
-                if (r.isFromWoman) Color.parseColor("#E84393")
-                else avatarColors[position % avatarColors.size]
-            )
+            val photoRes = when {
+                r.reviewerName.startsWith("Anna K.") -> R.drawable.anna_k
+                r.reviewerName.startsWith("Sara T.") -> R.drawable.sara_t
+                r.reviewerName.startsWith("Alex V.") -> R.drawable.alex_v
+                r.reviewerName.startsWith("David S.") -> R.drawable.david_s
+                r.reviewerName.startsWith("Maria P.") -> R.drawable.maria_p
+                r.reviewerName.startsWith("John M.") -> R.drawable.john_m
+                r.reviewerName.startsWith("Olivia R.") -> R.drawable.olivia_r
+                else -> null
+            }
+            if (photoRes != null) {
+                ivReviewerPhoto.setImageResource(photoRes)
+                ivReviewerPhoto.visibility = View.VISIBLE
+                tvReviewerInitials.visibility = View.GONE
+            } else {
+                ivReviewerPhoto.visibility = View.GONE
+                tvReviewerInitials.visibility = View.VISIBLE
+                tvReviewerInitials.text = initials
+                tvReviewerInitials.background.setTint(
+                    if (r.isFromWoman) Color.parseColor("#E84393")
+                    else avatarColors[position % avatarColors.size]
+                )
+            }
 
             tvReviewerName.text =
                 if (r.isFromWoman) {

@@ -14,16 +14,32 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- Avatar circle with initials -->
-        <TextView
-            android:id="@+id/tvReviewerInitials"
+        <!-- Avatar -->
+        <FrameLayout
             android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_avatar"
-            android:gravity="center"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:layout_height="40dp">
+
+            <ImageView
+                android:id="@+id/ivReviewerPhoto"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_avatar"
+                android:clipToOutline="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/anna_k"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvReviewerInitials"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_avatar"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </FrameLayout>
 
         <!-- Name + woman badge + date -->
         <LinearLayout
