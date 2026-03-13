@@ -1,0 +1,45 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="14dp"
+    android:height="22dp"
+    android:viewportWidth="14"
+    android:viewportHeight="22">
+
+    <!-- Car body (front = top, pointing North at rotation=0) -->
+    <path
+        android:fillColor="#FFD93D"
+        android:pathData="M1,5 Q1,1 7,1 Q13,1 13,5 L13,18 Q13,21 7,21 Q1,21 1,18 Z" />
+
+    <!-- Cabin roof tint -->
+    <path
+        android:fillColor="#F0C010"
+        android:pathData="M3,5 L11,5 L11,14 L3,14 Z" />
+
+    <!-- Front windshield -->
+    <path
+        android:fillColor="#B3DCFF"
+        android:fillAlpha="0.85"
+        android:pathData="M3.5,5 L10.5,5 L10.5,8.5 L3.5,8.5 Z" />
+
+    <!-- Rear window -->
+    <path
+        android:fillColor="#B3DCFF"
+        android:fillAlpha="0.65"
+        android:pathData="M3.5,10.5 L10.5,10.5 L10.5,13 L3.5,13 Z" />
+
+    <!-- Front headlights (top) -->
+    <path
+        android:fillColor="#FFFDE7"
+        android:pathData="M1,3 L3.5,3 L3.5,5 L1,5 Z" />
+    <path
+        android:fillColor="#FFFDE7"
+        android:pathData="M10.5,3 L13,3 L13,5 L10.5,5 Z" />
+
+    <!-- Rear tail lights (bottom) -->
+    <path
+        android:fillColor="#FF5252"
+        android:pathData="M1,16 L3.5,16 L3.5,18.5 L1,18.5 Z" />
+    <path
+        android:fillColor="#FF5252"
+        android:pathData="M10.5,16 L13,16 L13,18.5 L10.5,18.5 Z" />
+
+</vector>

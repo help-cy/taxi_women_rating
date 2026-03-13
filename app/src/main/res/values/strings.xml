@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SafeRide</string>
+    <string name="where_to">Where to?</string>
+    <string name="search_hint">Search destination…</string>
+    <string name="nearby_drivers">Nearby drivers</string>
+    <string name="my_location">My location</string>
+</resources>
