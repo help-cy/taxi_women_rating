@@ -169,56 +169,34 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         setupTransportSwitcher()
-        binding.btnWhereTo.setOnClickListener {
-            launchedSubActivity = true
-            searchLauncher.launch(Intent(this, SearchActivity::class.java).apply {
-                userLocation?.let {
-                    putExtra(SearchActivity.EXTRA_USER_LAT, it.latitude)
-                    putExtra(SearchActivity.EXTRA_USER_LON, it.longitude)
-                }
-                val pickup = selectedPickupPoint ?: userLocation
-                pickup?.let {
-                    putExtra(SearchActivity.EXTRA_PICKUP_LAT, it.latitude)
-                    putExtra(SearchActivity.EXTRA_PICKUP_LON, it.longitude)
-                }
-                putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
-            })
-        }
-        binding.tvSuggested1.setOnClickListener { quickRouteTo(binding.tvSuggested1.text.toString()) }
-        binding.tvSuggested2.setOnClickListener { quickRouteTo(binding.tvSuggested2.text.toString()) }
-        binding.tvSuggested3.setOnClickListener { quickRouteTo(binding.tvSuggested3.text.toString()) }
-        binding.rowRouteTo.setOnClickListener {
-            launchedSubActivity = true
-            searchLauncher.launch(Intent(this, SearchActivity::class.java).apply {
-                userLocation?.let {
-                    putExtra(SearchActivity.EXTRA_USER_LAT, it.latitude)
-                    putExtra(SearchActivity.EXTRA_USER_LON, it.longitude)
-                }
-                val pickup = selectedPickupPoint ?: userLocation
-                pickup?.let {
-                    putExtra(SearchActivity.EXTRA_PICKUP_LAT, it.latitude)
-                    putExtra(SearchActivity.EXTRA_PICKUP_LON, it.longitude)
-                }
-                putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
-            })
-        }
+        binding.btnWhereTo.setOnClickListener { openSearchWithPreset(null) }
+        binding.rowRouteTo.setOnClickListener { openSearchWithPreset(null) }
+        binding.tvSuggested1.setOnClickListener { openSearchWithPreset(binding.tvSuggested1.text.toString()) }
+        binding.tvSuggested2.setOnClickListener { openSearchWithPreset(binding.tvSuggested2.text.toString()) }
+        binding.tvSuggested3.setOnClickListener { openSearchWithPreset(binding.tvSuggested3.text.toString()) }
         binding.fabMyLocation.setOnClickListener {
             centerOnUserLocation()
         }
         binding.btnCancelRequest.setOnClickListener { showCancelConfirm(true) }
     }
 
-    private fun quickRouteTo(query: String) {
-        val loc = userLocation ?: return
-        lifecycleScope.launch {
-            val results = NominatimApi.search(query, loc.latitude, loc.longitude)
-            val first = results.firstOrNull()
-            if (first != null) {
-                drawRouteTo(first.geoPoint, first.shortName)
-            } else {
-                Snackbar.make(binding.root, "Couldn't find that place. Try search instead.", Snackbar.LENGTH_LONG).show()
+    private fun openSearchWithPreset(presetTo: String?) {
+        launchedSubActivity = true
+        searchLauncher.launch(Intent(this, SearchActivity::class.java).apply {
+            userLocation?.let {
+                putExtra(SearchActivity.EXTRA_USER_LAT, it.latitude)
+                putExtra(SearchActivity.EXTRA_USER_LON, it.longitude)
             }
-        }
+            val pickup = selectedPickupPoint ?: userLocation
+            pickup?.let {
+                putExtra(SearchActivity.EXTRA_PICKUP_LAT, it.latitude)
+                putExtra(SearchActivity.EXTRA_PICKUP_LON, it.longitude)
+            }
+            putExtra(SearchActivity.EXTRA_PICKUP_ADDRESS, binding.tvPickupAddress.text.toString())
+            if (!presetTo.isNullOrBlank()) {
+                putExtra(SearchActivity.EXTRA_PRESET_TO, presetTo)
+            }
+        })
     }
 
     private fun setupTransportSwitcher() {
