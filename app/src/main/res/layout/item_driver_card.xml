@@ -198,9 +198,10 @@
             android:layout_height="46dp"
             android:layout_weight="50"
             android:text="Decline"
-            android:textColor="#2C6B00"
+            android:textAllCaps="false"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp"
-            app:backgroundTint="#DFF6AE"
+            app:backgroundTint="@color/bg_input"
             app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -210,6 +211,7 @@
             android:layout_marginStart="10dp"
             android:layout_weight="50"
             android:text="Accept"
+            android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="13sp"
             android:textStyle="bold"

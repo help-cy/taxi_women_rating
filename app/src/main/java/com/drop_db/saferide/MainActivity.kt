@@ -46,11 +46,14 @@ class MainActivity : AppCompatActivity() {
 
     // ── Map ───────────────────────────────────────────────────────────────────
     private var routeOverlay: Polyline? = null
+    private var arrivalRouteOverlay: Polyline? = null
     private var destinationMarker: Marker? = null
     private var userMarker: Marker? = null
     private var userLocation: GeoPoint? = null
     private var selectedPickupPoint: GeoPoint? = null
+    private var selectedDestinationPoint: GeoPoint? = null
     private var selectedDestinationName: String = ""
+    private var lastRoutePoints: List<GeoPoint> = emptyList()
 
     // ── Tariff ────────────────────────────────────────────────────────────────
     private lateinit var tariffAdapter: TariffAdapter
@@ -60,9 +63,11 @@ class MainActivity : AppCompatActivity() {
     // ── Driver list ───────────────────────────────────────────────────────────
     private lateinit var driverListAdapter: DriverListAdapter
     private var searchJob: Job? = null
+    private var offersHeightLocked = false
 
     // ── Car animation ─────────────────────────────────────────────────────────
     private data class CarState(
+        val driver: MockDriver,
         val marker: Marker,
         val spawn: GeoPoint,
         var pos: GeoPoint,
@@ -177,6 +182,7 @@ class MainActivity : AppCompatActivity() {
         binding.fabMyLocation.setOnClickListener {
             centerOnUserLocation()
         }
+        binding.btnCancelRequest.setOnClickListener { showCancelConfirm(true) }
     }
 
     private fun setupTransportSwitcher() {
@@ -279,6 +285,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startDriverSearch() {
         searchJob?.cancel()
+        offersHeightLocked = false
         val center = userLocation ?: return
         val allDrivers = MockData.driversAround(center).shuffled()
         val filtered = if (selectedTariff.id == "safeplus")
@@ -287,6 +294,8 @@ class MainActivity : AppCompatActivity() {
         binding.cardTariff.slideDown()
         binding.cardSearching.slideUp()
         hideImmediately(binding.panelDriverList)
+        binding.btnCancelRequest.visibility = View.VISIBLE
+        binding.fabMyLocation.visibility = View.GONE
         driverListAdapter.submitList(emptyList())
         syncSearchingFare()
         updateSearchingDriverState(0, filtered.size)
@@ -318,8 +327,10 @@ class MainActivity : AppCompatActivity() {
                         binding.cardSearching.slideDown()
                         binding.cardRoutePreview.slideDown()
                         showTopOffers()
+                        lockOffersListHeightTo(3)
                     } else {
                         driverListAdapter.addDriver(driver)
+                        lockOffersListHeightTo(3)
                     }
                     updateSearchingDriverState(driverListAdapter.itemCount, filtered.size)
                     // No auto-scroll on new offers; user can scroll manually.
@@ -377,10 +388,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun resetToHomeState() {
         hideImmediately(binding.loadingOverlay)
+        hideImmediately(binding.offersDim)
         hideImmediately(binding.cardRoutePreview)
         hideImmediately(binding.cardTariff)
         hideImmediately(binding.cardSearching)
         hideImmediately(binding.panelDriverList)
+        hideImmediately(binding.cancelConfirmOverlay)
+        hideImmediately(binding.cardDriverArriving)
+        hideImmediately(binding.cardInRide)
+        binding.btnCancelRequest.visibility = View.GONE
         binding.cardWhereTo.visibility = View.VISIBLE
         binding.cardWhereTo.translationY = 0f
         binding.fabMyLocation.visibility = View.VISIBLE
@@ -416,12 +432,15 @@ class MainActivity : AppCompatActivity() {
             foundCount <= 0 -> "Searching nearby drivers"
             else -> "Offers are coming in"
         }
-        binding.tvDriverListSubtitle.text =
-            if (foundCount <= 0) "Waiting for offers" else "Driver offers"
     }
 
     private fun showTopOffers() {
         binding.panelDriverList.visibility = View.VISIBLE
+        binding.tvDriverListSubtitle.text = "Choose a driver"
+        binding.btnCancelRequest.bringToFront()
+        binding.offersDim.visibility = View.VISIBLE
+        binding.offersDim.alpha = 0f
+        binding.offersDim.animate().alpha(1f).setDuration(160L).start()
         binding.panelDriverList.post {
             val offsetPx = resources.displayMetrics.density * 48f
             binding.panelDriverList.translationY = -offsetPx
@@ -434,14 +453,203 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun showCancelConfirm(show: Boolean) {
+        if (show) {
+            binding.cancelConfirmOverlay.visibility = View.VISIBLE
+            binding.cancelConfirmOverlay.alpha = 0f
+            binding.cancelConfirmOverlay.animate().alpha(1f).setDuration(140L).start()
+
+            binding.cardCancelConfirm.post {
+                binding.cardCancelConfirm.translationY = binding.cardCancelConfirm.height.toFloat()
+                binding.cardCancelConfirm.animate()
+                    .translationY(0f)
+                    .setDuration(260L)
+                    .start()
+            }
+
+            binding.btnKeepSearching.setOnClickListener { showCancelConfirm(false) }
+            binding.btnConfirmCancelRequest.setOnClickListener {
+                searchJob?.cancel()
+                searchJob = null
+                showCancelConfirm(false)
+                clearRoute()
+                resetToHomeState()
+            }
+            binding.cancelConfirmOverlay.setOnClickListener { showCancelConfirm(false) }
+        } else {
+            binding.cardCancelConfirm.animate()
+                .translationY(binding.cardCancelConfirm.height.toFloat())
+                .setDuration(220L)
+                .withEndAction {
+                    binding.cancelConfirmOverlay.visibility = View.GONE
+                    binding.cancelConfirmOverlay.alpha = 1f
+                }
+                .start()
+        }
+    }
+
+    private fun lockOffersListHeightTo(maxVisibleItems: Int) {
+        if (offersHeightLocked) return
+        binding.rvDrivers.post {
+            val firstChild = binding.rvDrivers.getChildAt(0) ?: return@post
+            val lp = firstChild.layoutParams as? androidx.recyclerview.widget.RecyclerView.LayoutParams
+            val perItem = firstChild.height + (lp?.topMargin ?: 0) + (lp?.bottomMargin ?: 0)
+            if (perItem <= 0) return@post
+            val visible = maxVisibleItems.coerceAtMost(driverListAdapter.itemCount.coerceAtLeast(1))
+            val desired = perItem * visible + binding.rvDrivers.paddingTop + binding.rvDrivers.paddingBottom
+            binding.rvDrivers.layoutParams = binding.rvDrivers.layoutParams.apply {
+                height = desired
+            }
+            binding.rvDrivers.requestLayout()
+            if (driverListAdapter.itemCount >= maxVisibleItems) {
+                offersHeightLocked = true
+            }
+        }
+    }
+
     private fun onBookDriver(driver: MockDriver) {
-        Snackbar.make(
-            binding.root,
-            "✅  ${driver.name} is on the way! ETA ~${driver.eta} min",
-            Snackbar.LENGTH_LONG
-        ).setBackgroundTint(ContextCompat.getColor(this, R.color.brand_primary))
-         .setTextColor(ContextCompat.getColor(this, R.color.white))
-         .show()
+        searchJob?.cancel()
+        hideImmediately(binding.panelDriverList)
+        hideImmediately(binding.offersDim)
+
+        // Remove all car markers except the booked driver's
+        animJob?.cancel()
+        val bookedState = carStates.find { it.driver.id == driver.id }
+        carStates.filter { it.driver.id != driver.id }.forEach {
+            binding.mapView.overlays.remove(it.marker)
+        }
+        carStates.removeAll { it.driver.id != driver.id }
+        binding.mapView.invalidate()
+
+        // Animate booked car to pickup along OSRM route in 5 seconds
+        val pickup = selectedPickupPoint ?: userLocation
+        if (bookedState != null && pickup != null) {
+            animJob = lifecycleScope.launch {
+                val startPos = bookedState.pos
+                val route = OsrmApi.getRoute(startPos, pickup).takeIf { it.isNotEmpty() }
+                    ?: listOf(startPos, pickup)
+
+                // Draw arrival route overlay
+                arrivalRouteOverlay?.let { binding.mapView.overlays.remove(it) }
+                arrivalRouteOverlay = Polyline(binding.mapView).apply {
+                    setPoints(route)
+                    outlinePaint.color = ContextCompat.getColor(this@MainActivity, R.color.route_color)
+                    outlinePaint.strokeWidth = 10f
+                    outlinePaint.alpha = 180
+                }
+                binding.mapView.overlays.add(arrivalRouteOverlay)
+                binding.mapView.invalidate()
+
+                val totalSteps = 80
+                val stepMs = 5000L / totalSteps
+                var lastEta = driver.eta
+                for (step in 1..totalSteps) {
+                    val frac = step.toFloat() / totalSteps
+                    val newPos = interpolateRoute(route, frac)
+                    val prevPos = interpolateRoute(route, (step - 1f) / totalSteps)
+                    val dLat = newPos.latitude - prevPos.latitude
+                    val dLon = newPos.longitude - prevPos.longitude
+                    if (dLat * dLat + dLon * dLon > 1e-14)
+                        bookedState.marker.rotation = Math.toDegrees(atan2(dLon, dLat)).toFloat()
+                    bookedState.marker.position = newPos
+                    bookedState.pos = newPos
+
+                    // Trim arrival route from front to show remaining path
+                    val remaining = route.drop((route.size * frac).toInt().coerceAtMost(route.size - 1))
+                    if (remaining.size >= 2) {
+                        arrivalRouteOverlay?.setPoints(remaining)
+                    }
+
+                    // Countdown ETA every ~1 second
+                    val newEta = driver.eta - (frac * driver.eta).toInt()
+                    if (newEta != lastEta && newEta >= 0) {
+                        lastEta = newEta
+                        binding.tvArrivingTitle.text = "Your driver will arrive in ~$newEta min"
+                    }
+
+                    binding.mapView.invalidate()
+                    delay(stepMs)
+                }
+
+                // Remove arrival route overlay
+                arrivalRouteOverlay?.let { binding.mapView.overlays.remove(it); arrivalRouteOverlay = null }
+                binding.mapView.invalidate()
+
+                // Driver reached pickup — switch to in-ride
+                delay(400L)
+                startInRide(driver, bookedState)
+            }
+        }
+
+        // Fill arriving panel
+        binding.tvArrivingTitle.text = "Your driver will arrive in ~${driver.eta} min"
+        binding.tvArrivingCar.text = driver.carModel
+        binding.tvArrivingPlate.text = driver.plateNumber
+        binding.tvArrivingName.text = driver.name.substringBefore(" ")
+        binding.tvArrivingRating.text = "★ ${"%.1f".format(driver.rating)}"
+
+        val avatarColors = listOf(0xFF6C5CE7, 0xFF00B894, 0xFF0984E3, 0xFFE17055, 0xFF00CEC9, 0xFFFDAB5D, 0xFF74B9FF)
+        val color = avatarColors[driver.id % avatarColors.size].toInt()
+        val circle = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(color)
+        }
+        binding.tvArrivingAvatar.background = circle
+        binding.tvArrivingAvatar.text = driver.name.first().uppercaseChar().toString()
+
+        binding.btnCancelArriving.setOnClickListener {
+            hideImmediately(binding.cardDriverArriving)
+            clearRoute()
+            setHomeChromeVisible(true)
+            binding.cardWhereTo.slideUp()
+        }
+
+        binding.cardDriverArriving.slideUp()
+    }
+
+    private fun startInRide(driver: MockDriver, carState: CarState) {
+        hideImmediately(binding.cardDriverArriving)
+
+        val destination = selectedDestinationPoint ?: return
+        val pickup = selectedPickupPoint ?: userLocation ?: carState.pos
+
+        // Calculate ETA as current time + ride duration estimate
+        val distKm = routeDistanceKmLast.coerceAtLeast(0.5)
+        val etaMinutes = (distKm / 30.0 * 60).toLong().coerceAtLeast(1)
+        val cal = java.util.Calendar.getInstance().apply { add(java.util.Calendar.MINUTE, etaMinutes.toInt()) }
+        val etaStr = "%02d:%02d".format(cal.get(java.util.Calendar.HOUR_OF_DAY), cal.get(java.util.Calendar.MINUTE))
+
+        binding.tvInRideEta.text = "You will arrive at ~$etaStr"
+        binding.tvInRideCar.text = driver.carModel
+        binding.tvInRidePlate.text = driver.plateNumber
+        binding.cardInRide.slideUp()
+
+        // Animate car from pickup to destination along route in 10 seconds
+        animJob = lifecycleScope.launch {
+            val route = if (lastRoutePoints.size >= 2) lastRoutePoints
+                        else OsrmApi.getRoute(pickup, destination).takeIf { it.isNotEmpty() }
+                            ?: listOf(pickup, destination)
+            val totalSteps = 100
+            val stepMs = 10_000L / totalSteps
+            for (step in 1..totalSteps) {
+                val frac = step.toFloat() / totalSteps
+                val newPos = interpolateRoute(route, frac)
+                val prevPos = interpolateRoute(route, (step - 1f) / totalSteps)
+                val dLat = newPos.latitude - prevPos.latitude
+                val dLon = newPos.longitude - prevPos.longitude
+                if (dLat * dLat + dLon * dLon > 1e-14)
+                    carState.marker.rotation = Math.toDegrees(atan2(dLon, dLat)).toFloat()
+                carState.marker.position = newPos
+                binding.mapView.controller.animateTo(newPos)
+                binding.mapView.invalidate()
+                delay(stepMs)
+            }
+            // Arrived
+            hideImmediately(binding.cardInRide)
+            clearRoute()
+            setHomeChromeVisible(true)
+            binding.cardWhereTo.slideUp()
+        }
     }
 
     // ── Location ──────────────────────────────────────────────────────────────
@@ -540,7 +748,7 @@ class MainActivity : AppCompatActivity() {
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
             }
             binding.mapView.overlays.add(marker)
-            carStates.add(CarState(marker, spawn, GeoPoint(spawn), pickTarget(spawn, spawn)))
+            carStates.add(CarState(driver, marker, spawn, GeoPoint(spawn), pickTarget(spawn, spawn)))
         }
         binding.mapView.invalidate()
         startCarAnimation()
@@ -585,6 +793,7 @@ class MainActivity : AppCompatActivity() {
     private fun drawRouteTo(destination: GeoPoint, name: String) {
         val origin = selectedPickupPoint ?: userLocation ?: return
         selectedDestinationName = name
+        selectedDestinationPoint = destination
         clearRoute()
         showRouteLoading(true)
 
@@ -603,7 +812,7 @@ class MainActivity : AppCompatActivity() {
             val routeDeferred = async { OsrmApi.getRoute(origin, destination) }
 
             try {
-                val initialRoute = withTimeoutOrNull(2000) { routeDeferred.await() }
+                val initialRoute = withTimeoutOrNull(7000) { routeDeferred.await() }
                 if (!initialRoute.isNullOrEmpty()) {
                     renderRoute(origin, destination, initialRoute, true)
                     routeDistanceKmLast = routeDistanceKm(initialRoute).coerceAtLeast(0.3)
@@ -636,6 +845,7 @@ class MainActivity : AppCompatActivity() {
         points: List<GeoPoint>,
         roadRoute: Boolean
     ) {
+        lastRoutePoints = points
         routeOverlay?.let { binding.mapView.overlays.remove(it) }
         routeOverlay = Polyline(binding.mapView).apply {
             setPoints(points)
@@ -666,8 +876,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearRoute() {
         routeOverlay?.let { binding.mapView.overlays.remove(it); routeOverlay = null }
+        arrivalRouteOverlay?.let { binding.mapView.overlays.remove(it); arrivalRouteOverlay = null }
         destinationMarker?.let { binding.mapView.overlays.remove(it); destinationMarker = null }
         binding.mapView.invalidate()
+    }
+
+    private fun interpolateRoute(points: List<GeoPoint>, fraction: Float): GeoPoint {
+        if (points.size < 2) return points.first()
+        var total = 0.0
+        for (i in 1 until points.size) total += points[i - 1].distanceToAsDouble(points[i])
+        val target = total * fraction.coerceIn(0f, 1f)
+        var covered = 0.0
+        for (i in 1 until points.size) {
+            val seg = points[i - 1].distanceToAsDouble(points[i])
+            if (covered + seg >= target) {
+                val t = if (seg > 0) (target - covered) / seg else 0.0
+                return GeoPoint(
+                    points[i - 1].latitude  + (points[i].latitude  - points[i - 1].latitude)  * t,
+                    points[i - 1].longitude + (points[i].longitude - points[i - 1].longitude) * t
+                )
+            }
+            covered += seg
+        }
+        return points.last()
     }
 
     private fun routeDistanceKm(points: List<GeoPoint>): Double {
