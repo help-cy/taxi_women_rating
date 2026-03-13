@@ -28,10 +28,20 @@
             android:scaleType="center"
             app:srcCompat="@drawable/ic_back" />
 
+        <TextView
+            android:id="@+id/tvDriverAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_avatar"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -127,7 +137,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="★ ♀Women"
+                android:text="★ ♀ Women"
                 android:textColor="#E84393"
                 android:textSize="13sp"
                 android:textStyle="bold" />

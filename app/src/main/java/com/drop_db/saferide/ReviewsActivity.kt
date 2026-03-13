@@ -1,8 +1,6 @@
 package com.drop_db.saferide
 
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.drop_db.saferide.databinding.ActivityReviewsBinding
@@ -41,6 +39,13 @@ class ReviewsActivity : AppCompatActivity() {
 
         // Toolbar
         binding.tvDriverNameTitle.text = driverName
+        binding.tvDriverAvatar.text = driverName
+            .trim()
+            .split(Regex("\\s+"))
+            .mapNotNull { it.firstOrNull()?.toString() }
+            .take(2)
+            .joinToString("")
+        binding.tvDriverAvatar.background.setTint(0xFF90D800.toInt())
         binding.btnBack.setOnClickListener { finish() }
 
         // Summary
@@ -48,10 +53,6 @@ class ReviewsActivity : AppCompatActivity() {
         binding.tvSummaryTotalReviews.text  = "$totalReviews reviews"
         binding.tvSummaryWomen.text         = "%.1f".format(womenRating)
         binding.tvSummaryWomenCount.text    = "${womenReviews.size} women reviews"
-        binding.tvSummaryWomenLabel.text = SpannableString("★ ♀Women").apply {
-            setSpan(ForegroundColorSpan(0xFFFFB300.toInt()), 0, 1, 0) // ★
-            setSpan(ForegroundColorSpan(0xFFE84393.toInt()), 2, length, 0) // ♀Women
-        }
 
         // RecyclerView
         binding.rvReviews.layoutManager = LinearLayoutManager(this)
@@ -75,9 +76,9 @@ class ReviewsActivity : AppCompatActivity() {
     }
 
     private fun updateTabs() {
-        val colorActive   = getColor(R.color.brand_primary)
+        val colorActive   = 0xFF90D800.toInt()
         val colorInactive = getColor(R.color.bg_input)
-        val textActive    = getColor(R.color.white)
+        val textActive    = getColor(R.color.text_primary)
         val textInactive  = getColor(R.color.text_secondary)
         val womenPink     = 0xFFE84393.toInt()
         val womenBg       = 0xFFFFE3F1.toInt()
