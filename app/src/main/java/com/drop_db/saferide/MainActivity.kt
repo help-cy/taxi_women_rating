@@ -170,10 +170,11 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         setupTransportSwitcher()
         binding.btnWhereTo.setOnClickListener { openSearchWithPreset(null) }
+        binding.btnMenu.setOnClickListener { openSearchWithPreset(null) }
         binding.rowRouteTo.setOnClickListener { openSearchWithPreset(null) }
-        binding.tvSuggested1.setOnClickListener { openSearchWithPreset(binding.tvSuggested1.text.toString()) }
-        binding.tvSuggested2.setOnClickListener { openSearchWithPreset(binding.tvSuggested2.text.toString()) }
-        binding.tvSuggested3.setOnClickListener { openSearchWithPreset(binding.tvSuggested3.text.toString()) }
+        binding.rowSuggested1.setOnClickListener { openSearchWithPreset(binding.tvSuggested1.text.toString()) }
+        binding.rowSuggested2.setOnClickListener { openSearchWithPreset(binding.tvSuggested2.text.toString()) }
+        binding.rowSuggested3.setOnClickListener { openSearchWithPreset(binding.tvSuggested3.text.toString()) }
         binding.fabMyLocation.setOnClickListener {
             centerOnUserLocation()
         }
@@ -444,7 +445,7 @@ class MainActivity : AppCompatActivity() {
     private fun setHomeChromeVisible(visible: Boolean) {
         val visibility = if (visible) View.VISIBLE else View.GONE
         binding.btnMenu.visibility = visibility
-        binding.cardPickupPoint.visibility = visibility
+        binding.cardPickupPoint.visibility = View.GONE
     }
 
     private fun resetToHomeState() {

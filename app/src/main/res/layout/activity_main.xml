@@ -324,9 +324,13 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/rowSuggested1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -350,9 +354,13 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/rowSuggested2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -376,9 +384,13 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/rowSuggested3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -597,7 +609,8 @@
                 android:layout_marginTop="4dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="18dp">
+                android:paddingHorizontal="18dp"
+                android:paddingBottom="16dp">
 
                 <ImageView
                     android:layout_width="26dp"
@@ -611,7 +624,6 @@
                     android:layout_height="60dp"
                     android:layout_marginStart="14dp"
                     android:layout_marginEnd="14dp"
-                    android:layout_marginBottom="16dp"
                     android:layout_weight="1"
                     android:text="Find offers"
                     android:textAllCaps="false"
