@@ -17,7 +17,12 @@ import com.drop_db.saferide.util.NominatimApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapEventsReceiver
+import org.osmdroid.views.overlay.MapEventsOverlay
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
 
 class SearchActivity : AppCompatActivity() {
 
@@ -39,6 +44,10 @@ class SearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        Configuration.getInstance().load(
+            this, android.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        )
+        Configuration.getInstance().userAgentValue = packageName
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -58,6 +67,7 @@ class SearchActivity : AppCompatActivity() {
         )
         fromResult = initialPickupResult
 
+        setupMap()
         setupRecyclerView()
         setupSearchFields()
         renderInitialValues()
@@ -68,6 +78,61 @@ class SearchActivity : AppCompatActivity() {
         binding.fieldTo.setOnClickListener { setActiveField(ActiveField.TO) }
         binding.btnClearSearch.setOnClickListener {
             activeEditText().text?.clear()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.mapSearchView.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.mapSearchView.onPause()
+    }
+
+    private fun setupMap() {
+        with(binding.mapSearchView) {
+            setTileSource(TileSourceFactory.MAPNIK)
+            zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
+            setMultiTouchControls(true)
+            val center = GeoPoint(
+                intent.getDoubleExtra(EXTRA_PICKUP_LAT, userLat).takeIf { it != 0.0 } ?: userLat,
+                intent.getDoubleExtra(EXTRA_PICKUP_LON, userLon).takeIf { it != 0.0 } ?: userLon
+            )
+            if (center.latitude != 0.0 || center.longitude != 0.0) {
+                controller.setZoom(15.0)
+                controller.setCenter(center)
+            }
+        }
+
+        val mapEventsReceiver = object : MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                onMapTapped(p)
+                return true
+            }
+            override fun longPressHelper(p: GeoPoint) = false
+        }
+        binding.mapSearchView.overlays.add(0, MapEventsOverlay(mapEventsReceiver))
+    }
+
+    private fun onMapTapped(point: GeoPoint) {
+        hideKeyboard()
+        binding.tvMapPickHint.text = "Loading address…"
+        binding.tvMapPickHint.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val result = NominatimApi.reverse(point.latitude, point.longitude)
+            if (result != null) {
+                onSearchResultSelected(result)
+            }
+            binding.tvMapPickHint.visibility = View.GONE
+        }
+    }
+
+    private fun hideKeyboard() {
+        currentFocus?.let {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(it.windowToken, 0)
         }
     }
 
@@ -188,10 +253,7 @@ class SearchActivity : AppCompatActivity() {
     private fun returnResult() {
         val from = fromResult ?: return
         val to = toResult ?: return
-        currentFocus?.let {
-            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(it.windowToken, 0)
-        }
+        hideKeyboard()
         setResult(Activity.RESULT_OK, Intent().apply {
             putExtra(EXTRA_PICKUP_LAT, from.geoPoint.latitude)
             putExtra(EXTRA_PICKUP_LON, from.geoPoint.longitude)

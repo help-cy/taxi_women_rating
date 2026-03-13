@@ -78,6 +78,8 @@ class MainActivity : AppCompatActivity() {
         -0.0015 to 0.002, -0.0015 to -0.002
     )
 
+    private var launchedSubActivity = false
+
     // ── Launchers ─────────────────────────────────────────────────────────────
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -90,6 +92,7 @@ class MainActivity : AppCompatActivity() {
     private val searchLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        launchedSubActivity = false
         if (result.resultCode == RESULT_OK) {
             val data = result.data ?: return@registerForActivityResult
             val pickupLat = data.getDoubleExtra(SearchActivity.EXTRA_PICKUP_LAT, Double.NaN)
@@ -132,7 +135,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.mapView.onResume()
-        if (routeOverlay == null && destinationMarker == null && binding.loadingOverlay.visibility != View.VISIBLE) {
+        if (!launchedSubActivity && routeOverlay == null && destinationMarker == null && binding.loadingOverlay.visibility != View.VISIBLE) {
             resetToHomeState()
         }
         if (carStates.isNotEmpty()) startCarAnimation()
@@ -157,6 +160,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         setupTransportSwitcher()
         binding.btnWhereTo.setOnClickListener {
+            launchedSubActivity = true
             searchLauncher.launch(Intent(this, SearchActivity::class.java).apply {
                 userLocation?.let {
                     putExtra(SearchActivity.EXTRA_USER_LAT, it.latitude)
@@ -259,17 +263,22 @@ class MainActivity : AppCompatActivity() {
 
     // ── PANEL 3: Searching ────────────────────────────────────────────────────
     private fun setupSearchingPanel() {
-        binding.btnCancelSearch.setOnClickListener {
-            searchJob?.cancel()
-            binding.cardSearching.slideDown()
-            clearRoute()
-            binding.cardRoutePreview.slideDown()
-            setHomeChromeVisible(true)
-            binding.cardWhereTo.slideUp()
+        binding.btnDecreaseSearchingPrice.setOnClickListener {
+            adjustTariffPrice(selectedTariff, -1.0)
+            syncSearchingFare()
+        }
+        binding.btnIncreaseSearchingPrice.setOnClickListener {
+            adjustTariffPrice(selectedTariff, 1.0)
+            syncSearchingFare()
+        }
+        binding.btnRaiseFare.setOnClickListener {
+            adjustTariffPrice(selectedTariff, 1.0)
+            syncSearchingFare()
         }
     }
 
     private fun startDriverSearch() {
+        searchJob?.cancel()
         val center = userLocation ?: return
         val allDrivers = MockData.driversAround(center).shuffled()
         val filtered = if (selectedTariff.id == "safeplus")
@@ -277,24 +286,58 @@ class MainActivity : AppCompatActivity() {
 
         binding.cardTariff.slideDown()
         binding.cardSearching.slideUp()
-        binding.tvSearchingStatus.text = "${filtered.size} drivers nearby"
+        hideImmediately(binding.panelDriverList)
+        driverListAdapter.submitList(emptyList())
+        syncSearchingFare()
+        updateSearchingDriverState(0, filtered.size)
+        binding.tvSearchingTimer.text = "1:00"
+        binding.progressSearching.progress = 100
 
         searchJob = lifecycleScope.launch {
-            val steps = listOf(
-                "Checking nearby availability",
-                "Matching your preferences…",
-                "Almost there…"
-            )
-            steps.forEachIndexed { i, msg ->
-                delay(if (i == 0) 1200L else 1300L)
-                binding.tvSearchingStatus.text = msg
+            val timerJob = launch {
+                for (remaining in 60 downTo 0) {
+                    val min = remaining / 60
+                    val sec = remaining % 60
+                    binding.tvSearchingTimer.text = "%d:%02d".format(min, sec)
+                    binding.progressSearching.progress = ((remaining / 60.0) * 100.0).roundToInt()
+                    if (remaining > 0) delay(1000L)
+                }
             }
-            delay(700L)
 
-            binding.cardSearching.slideDown()
-            delay(300L)
-            showDriverList(filtered, center)
+            val offersJob = launch {
+                // First offer quickly, then steady stream.
+                delay(3000L)
+                if (!isActive) return@launch
+                filtered.forEachIndexed { index, driver ->
+                    if (index > 0) delay(2000L)
+                    if (!isActive) return@launch
+
+                    if (index == 0) {
+                        driverListAdapter.submitList(listOf(driver))
+                        // Once we have the first real offer, keep only the offers overlay on screen.
+                        binding.cardSearching.slideDown()
+                        binding.cardRoutePreview.slideDown()
+                        showTopOffers()
+                    } else {
+                        driverListAdapter.addDriver(driver)
+                    }
+                    updateSearchingDriverState(driverListAdapter.itemCount, filtered.size)
+                    // No auto-scroll on new offers; user can scroll manually.
+                }
+            }
+
+            timerJob.join()
+            offersJob.cancel()
+
+            if (driverListAdapter.isEmpty()) {
+                Snackbar.make(binding.root, "No offers received. Try again!", Snackbar.LENGTH_LONG).show()
+            }
         }
+    }
+
+    private fun syncSearchingFare() {
+        binding.tvSearchingPrice.text = "€%.0f".format(selectedTariff.price)
+        binding.btnRaiseFare.text = "Raise fare to €%.0f".format(selectedTariff.price + 1.0)
     }
 
     // ── PANEL 4: Driver list ──────────────────────────────────────────────────
@@ -303,13 +346,14 @@ class MainActivity : AppCompatActivity() {
             onBook = { driver -> onBookDriver(driver) },
             onPass = { driver ->
                 driverListAdapter.remove(driver)
+                updateSearchingDriverState(driverListAdapter.itemCount, driverListAdapter.itemCount)
                 if (driverListAdapter.isEmpty()) {
-                    binding.panelDriverList.slideDown()
+                    hideImmediately(binding.panelDriverList)
                     Snackbar.make(binding.root, "No more drivers. Try again!", Snackbar.LENGTH_LONG).show()
-                    binding.cardWhereTo.slideUp()
                 }
             },
             onReviews = { driver, templateIndex ->
+                launchedSubActivity = true
                 startActivity(Intent(this, ReviewsActivity::class.java).apply {
                     putExtra(ReviewsActivity.EXTRA_DRIVER_TEMPLATE_INDEX, templateIndex)
                     putExtra(ReviewsActivity.EXTRA_DRIVER_NAME,           driver.name)
@@ -322,13 +366,6 @@ class MainActivity : AppCompatActivity() {
         binding.rvDrivers.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = driverListAdapter
-        }
-        binding.btnCloseDriverList.setOnClickListener {
-            binding.panelDriverList.slideDown()
-            clearRoute()
-            binding.cardRoutePreview.slideDown()
-            setHomeChromeVisible(true)
-            binding.cardWhereTo.slideUp()
         }
     }
 
@@ -359,18 +396,41 @@ class MainActivity : AppCompatActivity() {
 
     private fun showDriverList(drivers: List<MockDriver>, center: GeoPoint) {
         driverListAdapter.submitList(emptyList())
-        binding.tvDriverListSubtitle.text =
-            "${selectedTariff.name}  •  ${"%.1f".format(routeDistanceKmLast)} km" +
-            "  •  ${drivers.size} available"
-
-        binding.panelDriverList.slideUp()
+        updateSearchingDriverState(0, drivers.size)
 
         searchJob = lifecycleScope.launch {
-            drivers.forEach { driver ->
-                delay(2000L)
+            drivers.forEachIndexed { index, driver ->
+                delay(if (index == 0) 600L else 900L)
                 driverListAdapter.addDriver(driver)
+                if (binding.panelDriverList.visibility != View.VISIBLE) {
+                    showTopOffers()
+                }
+                updateSearchingDriverState(driverListAdapter.itemCount, drivers.size)
                 binding.rvDrivers.scrollToPosition(driverListAdapter.itemCount - 1)
             }
+        }
+    }
+
+    private fun updateSearchingDriverState(foundCount: Int, totalCount: Int) {
+        binding.tvSearchingStatus.text = when {
+            foundCount <= 0 -> "Searching nearby drivers"
+            else -> "Offers are coming in"
+        }
+        binding.tvDriverListSubtitle.text =
+            if (foundCount <= 0) "Waiting for offers" else "Driver offers"
+    }
+
+    private fun showTopOffers() {
+        binding.panelDriverList.visibility = View.VISIBLE
+        binding.panelDriverList.post {
+            val offsetPx = resources.displayMetrics.density * 48f
+            binding.panelDriverList.translationY = -offsetPx
+            binding.panelDriverList.alpha = 0f
+            binding.panelDriverList.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(260L)
+                .start()
         }
     }
 

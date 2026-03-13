@@ -4,12 +4,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginBottom="12dp"
-    android:background="@drawable/bg_driver_card"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_driver_offer_card"
+    android:clickable="true"
     android:elevation="4dp"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="12dp">
 
     <!-- ── Top row: avatar + info + ratings ── -->
     <LinearLayout
@@ -21,12 +24,12 @@
         <!-- Avatar circle -->
         <TextView
             android:id="@+id/tvInitials"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@drawable/bg_avatar"
             android:gravity="center"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <!-- Name / car / ETA -->
@@ -37,7 +40,6 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Name + safe badge -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -49,22 +51,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_primary"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvSafeBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_safe_badge"
-                    android:paddingHorizontal="7dp"
-                    android:paddingVertical="2dp"
-                    android:text="🛡 Verified"
-                    android:textColor="@color/brand_primary"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
 
             </LinearLayout>
 
@@ -73,18 +61,18 @@
                 android:id="@+id/tvDriverCar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="2dp"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <!-- ETA -->
             <TextView
                 android:id="@+id/tvDriverEta"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
         </LinearLayout>
 
@@ -120,13 +108,21 @@
 
             </LinearLayout>
 
-            <!-- Women's rating -->
+            <!-- Women rating -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="★ "
+                    android:textColor="#FFB300"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -140,7 +136,7 @@
                     android:id="@+id/tvWomenRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_primary"
+                    android:textColor="#E84393"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
@@ -159,12 +155,11 @@
 
     </LinearLayout>
 
-    <!-- ── See reviews tap row ── -->
     <LinearLayout
         android:id="@+id/btnSeeReviews"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?attr/selectableItemBackground"
@@ -176,7 +171,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/brand_primary"
+            android:textColor="#2C6B00"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -184,53 +179,41 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="›"
-            android:textColor="@color/brand_primary"
+            android:textColor="#2C6B00"
             android:textSize="16sp"
             android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- ── Review quote ── -->
-    <TextView
-        android:id="@+id/tvReviewQuote"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@color/bg_input"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="10dp"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp"
-        android:textStyle="italic" />
-
     <!-- ── Action buttons ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPass"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="35"
-            android:text="Pass"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp"
-            app:backgroundTint="@color/bg_input"
+            android:layout_height="46dp"
+            android:layout_weight="50"
+            android:text="Decline"
+            android:textColor="#2C6B00"
+            android:textSize="13sp"
+            app:backgroundTint="#DFF6AE"
             app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBook"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
             android:layout_marginStart="10dp"
-            android:layout_weight="65"
+            android:layout_weight="50"
+            android:text="Accept"
             android:textColor="@color/white"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            app:backgroundTint="@color/brand_primary"
+            app:backgroundTint="#90D800"
             app:cornerRadius="12dp" />
 
     </LinearLayout>

@@ -56,7 +56,7 @@
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
                     android:text="♀ Woman"
-                    android:textColor="@color/brand_primary"
+                    android:textColor="#E84393"
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:visibility="gone" />

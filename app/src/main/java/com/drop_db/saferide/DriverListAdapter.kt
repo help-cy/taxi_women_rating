@@ -70,23 +70,17 @@ class DriverListAdapter(
             tvDriverEta.text  = "~${d.eta} min away"
 
             // Ratings
-            tvOverallRating.text = d.rating.toString()
-            tvWomenRating.text   = d.womenRating.toString()
+            tvOverallRating.text = String.format("%.1f", d.rating)
             tvReviewCount.text   = "${d.totalReviews} reviews"
-
-            // Review
-            tvReviewQuote.text = d.reviewQuote
-
-            // Women-safe badge
-            tvSafeBadge.visibility = if (d.womenSafe) View.VISIBLE else View.GONE
+            tvWomenRating.text = String.format("%.1f", d.womenRating)
 
             // See reviews link  (id is 1-based, templateIndex is 0-based)
             val templateIndex = d.id - 1
             tvSeeReviews.text = "See ${d.totalReviews} reviews"
             btnSeeReviews.setOnClickListener { onReviews(d, templateIndex) }
+            root.setOnClickListener { onReviews(d, templateIndex) }
 
             // Buttons
-            btnBook.text = "Book ${d.name.substringBefore(" ")}"
             btnBook.setOnClickListener { onBook(d) }
             btnPass.setOnClickListener { onPass(d) }
         }

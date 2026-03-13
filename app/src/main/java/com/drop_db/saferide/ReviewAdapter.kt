@@ -51,7 +51,19 @@ class ReviewAdapter : RecyclerView.Adapter<ReviewAdapter.VH>() {
                 else avatarColors[position % avatarColors.size]
             )
 
-            tvReviewerName.text = r.reviewerName
+            tvReviewerName.text =
+                if (r.isFromWoman) {
+                    val parts = r.reviewerName.trim().split(Regex("\\s+"))
+                    val first = parts.getOrNull(0)?.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
+                    val last = parts.getOrNull(1)?.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
+                    when {
+                        first.isNotEmpty() && last.isNotEmpty() -> "$first. $last."
+                        first.isNotEmpty() -> "$first."
+                        else -> ""
+                    }
+                } else {
+                    r.reviewerName
+                }
             tvReviewDate.text   = r.date
             tvWomanBadge.visibility = if (r.isFromWoman) View.VISIBLE else View.GONE
 

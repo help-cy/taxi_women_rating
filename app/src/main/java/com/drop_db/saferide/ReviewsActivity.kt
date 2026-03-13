@@ -1,6 +1,8 @@
 package com.drop_db.saferide
 
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.drop_db.saferide.databinding.ActivityReviewsBinding
@@ -46,6 +48,10 @@ class ReviewsActivity : AppCompatActivity() {
         binding.tvSummaryTotalReviews.text  = "$totalReviews reviews"
         binding.tvSummaryWomen.text         = "%.1f".format(womenRating)
         binding.tvSummaryWomenCount.text    = "${womenReviews.size} women reviews"
+        binding.tvSummaryWomenLabel.text = SpannableString("★ ♀Women").apply {
+            setSpan(ForegroundColorSpan(0xFFFFB300.toInt()), 0, 1, 0) // ★
+            setSpan(ForegroundColorSpan(0xFFE84393.toInt()), 2, length, 0) // ♀Women
+        }
 
         // RecyclerView
         binding.rvReviews.layoutManager = LinearLayoutManager(this)
@@ -73,13 +79,15 @@ class ReviewsActivity : AppCompatActivity() {
         val colorInactive = getColor(R.color.bg_input)
         val textActive    = getColor(R.color.white)
         val textInactive  = getColor(R.color.text_secondary)
+        val womenPink     = 0xFFE84393.toInt()
+        val womenBg       = 0xFFFFE3F1.toInt()
 
         with(binding) {
             btnTabAll.setBackgroundColor(if (!showingWomenOnly) colorActive else colorInactive)
             btnTabAll.setTextColor(if (!showingWomenOnly) textActive else textInactive)
 
-            btnTabWomen.setBackgroundColor(if (showingWomenOnly) colorActive else colorInactive)
-            btnTabWomen.setTextColor(if (showingWomenOnly) textActive else textInactive)
+            btnTabWomen.setBackgroundColor(if (showingWomenOnly) womenBg else colorInactive)
+            btnTabWomen.setTextColor(womenPink)
         }
     }
 }
